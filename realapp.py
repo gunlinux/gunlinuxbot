@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from twitchbot import TwitchBot
 from event import EventHandler
 from models.command import Command
+from donats import DonatApi
 
 
 load_dotenv()
@@ -32,8 +33,12 @@ async def main():
     echo_command = Command('!ауф',  event_handler, real_runner=auf)
     auf_command = Command('!auf',  event_handler, real_runner=auf)
 
+    da_token = os.environ.get('DA_ACCESS_TOKEN', 'set_dame_token')
+    donat = DonatApi(token=da_token)
+
     await asyncio.gather(
         run_twitch_bot(event_handler),
+        donat.run()
     )
 
 

@@ -1,2 +1,9 @@
 twitchio
+requests
 python-dotenv
+donationalerts-api 
+websocket-client
+requests
+python-socketio
+aiohttp
+websockets
