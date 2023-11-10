@@ -7,6 +7,7 @@ class EventHandler:
     users: set[User] = set()
     mssgs: list[Mssg] = list()
     commands: dict = dict()
+    twitch_instance = None
 
     def __init__(self):
         pass
@@ -22,16 +23,22 @@ class EventHandler:
         self.users.add(user)
         return user
 
-    def handle_event(self, message):
-        user = self.get_or_add_user(message['userid'], message['username'])
-        mssg = Mssg(id=message['id'], mssg=message['mssg'], user_id=user.id)
+    async def handle_event(self, message):
+        print(f'starting hanlde_message {message}')
+        chatter = message.author
+        content = message.content
+        print(type(message))
+        if not chatter:
+            return
+        user = self.get_or_add_user(chatter.id,chatter.name)
+        mssg = Mssg(id=message.id, mssg=message.content, user_id=chatter.id)
         user.new_mssg()
         self.mssgs.append(mssg)
         print(f'{user.username}: {mssg.mssg}')
         for command_name, command in self.commands.items():
-            if message['mssg'].startswith(command_name):
+            if message.content.startswith(command_name):
                 print(f'detected command: {command}')
-                command.run(mssg, user)
+                await command.run(mssg, user)
 
     def show_users(self):
         print('users:')
@@ -43,8 +50,12 @@ class EventHandler:
         self.commands[name] = Command
         print(self.commands)
 
-    def chat(self, mssg):
+    async def chat(self, mssg):
+        await self.twitch_instance.send_message(mssg)
         print(f'send_mssg_to_chat {mssg}')
+
+    def set_twitch_instance(self, instance):
+        self.twitch_instance = instance
 
 
 def auf(message, user, event_hander=None):
