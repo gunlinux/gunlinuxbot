@@ -19,4 +19,3 @@ class Command:
 
     def __str__(self):
         return f'<Command> {self.name}'
-

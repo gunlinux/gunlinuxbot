@@ -24,6 +24,3 @@ class Event:
     message_type: str
     preset_id: int
     objects: dict
-
-
-

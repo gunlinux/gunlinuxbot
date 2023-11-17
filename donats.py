@@ -1,9 +1,6 @@
-import os
 import json
-import asyncio
 import socketio
 from datetime import datetime
-from typing import Any
 
 from dotenv import load_dotenv
 from models.events import Event
@@ -23,7 +20,9 @@ class DonatApi:
         print('end')
 
     async def default_handler_function(self, event):
-         print(f"{event.username} пожертвовал {event.amount_formatted} {event.currency} | {event.message}")
+        mssg = f'''{event.username} пожертвовал {event.amount_formatted}
+                    {event.currency} | {event.message}'''
+        print(mssg)
 
     def __init__(self, token, handler=None):
         self.sio = socketio.AsyncClient()
@@ -79,14 +78,3 @@ class DonatApi:
                     data
                     )
                 )
-
-
-async def main():
-    token = os.environ.get('DA_ACCESS_TOKEN', 'set_dame_token')
-    print(token)
-    donat = DonatApi(token=token, handler=handler)
-    await donat.run()
-
-
-if __name__ == '__main__':
-    asyncio.run(main())

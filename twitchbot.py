@@ -5,12 +5,11 @@ class TwitchBot(commands.Bot):
     handler_function = None
     debug = False
 
-    def __init__(self, access_token, channels=None, default_channel='gunlinux', loop=None, handler=None, debug=False):
+    def __init__(self, access_token, channels=None, default_channel='gunlinux', loop=None,
+                 handler=None, debug=False):
         if channels is None:
             channels = [default_channel]
-        # Initialise our Bot with our access token, prefix and a list of channels to join on boot...
-        # prefix can be a callable, which returns a list of strings or a string...
-        # initial_channels can also be a callable which returns a list of strings...
+
         if handler:
             self.handler_function = handler.handle_event
             handler.twitch_instance = self

@@ -31,18 +31,19 @@ class EventHandler:
         print(type(message))
         if not chatter:
             return
-        user = self.get_or_add_user(chatter.id,chatter.name)
-        mssg = Mssg(id=message.id, mssg=message.content, user_id=chatter.id)
+        user = self.get_or_add_user(chatter.id, chatter.name)
+        mssg = Mssg(id=message.id, mssg=content, user_id=chatter.id)
         user.new_mssg()
         self.mssgs.append(mssg)
         print(f'{user.username}: {mssg.mssg}')
         for command_name, command in self.commands.items():
-            if message.content.startswith(command_name):
+            if content.startswith(command_name):
                 print(f'detected command: {command}')
                 await command.run(mssg, user)
 
     async def handle_donation_event(self, event: Event):
-        mssg_text = f"@gunlinux {event.username} пожертвовал {event.amount_formatted} {event.currency} | {event.message}"
+        mssg_text = f'''@gunlinux {event.username} пожертвовал {event.amount_formatted} \
+            {event.currency} | {event.message}'''
         await self.chat(mssg_text)
 
     def show_users(self):
@@ -80,9 +81,7 @@ if __name__ == '__main__':
         {'userid': 3, 'username': 'wigust', 'mssg': 'Pog', 'id': 5},
     ]
 
-
     for message in messages:
         event_handler.handle_event(message)
 
     event_handler.show_users()
-

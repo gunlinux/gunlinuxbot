@@ -10,6 +10,7 @@ from donats import DonatApi
 
 load_dotenv()
 
+
 async def run_twitch_bot(handler):
     access_token = os.environ.get('ACCESS_TOKEN', 'set_Dame_token')
     event_loop = asyncio.get_running_loop()
@@ -30,8 +31,8 @@ async def auf(message, user, event_handler=None):
 
 async def main():
     event_handler = EventHandler()
-    echo_command = Command('!ауф',  event_handler, real_runner=auf)
-    auf_command = Command('!auf',  event_handler, real_runner=auf)
+    Command('!ауф',  event_handler, real_runner=auf)
+    Command('!auf',  event_handler, real_runner=auf)
 
     da_token = os.environ.get('DA_ACCESS_TOKEN', 'set_dame_token')
     donat = DonatApi(token=da_token, handler=event_handler)
