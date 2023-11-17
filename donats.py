@@ -3,35 +3,11 @@ import json
 import asyncio
 import socketio
 from datetime import datetime
-from dataclasses import dataclass
 from typing import Any
 
 from dotenv import load_dotenv
+from models.events import Event
 load_dotenv()
-
-
-@dataclass
-class Event:
-    id: int
-    alert_type: str
-    is_shown: str
-    additional_data: dict
-    billing_system: str
-    billing_system_type: str
-    username: str
-    amount: str
-    amount_formatted: str
-    amount_main: int
-    currency: str
-    message: str
-    header: str
-    date_created: Any
-    emotes: str
-    ap_id: str
-    _is_test_alert: bool
-    message_type: str
-    preset_id: int
-    objects: dict
 
 
 class DonatApi:
@@ -46,14 +22,17 @@ class DonatApi:
         await self.sio.wait()
         print('end')
 
-    async def default_handler(self, event):
+    async def default_handler_function(self, event):
          print(f"{event.username} пожертвовал {event.amount_formatted} {event.currency} | {event.message}")
 
     def __init__(self, token, handler=None):
         self.sio = socketio.AsyncClient()
         self.token = token
         if handler is None:
-            self.handler = self.default_handler
+            self.handler = None
+            self.handler_function = self.default_hanlder_function
+        else:
+            self.handler = handler
 
         @self.sio.on("connect")
         async def on_connect():
@@ -75,7 +54,8 @@ class DonatApi:
             print('on_message')
             data = json.loads(data)
             print(f"date failed = {data['date_created']}")
-            await self.handler(
+
+            await self.handler.handle_donation_event(
                 Event(
                     data["id"],
                     data["alert_type"],

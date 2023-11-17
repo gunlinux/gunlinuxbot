@@ -34,7 +34,7 @@ async def main():
     auf_command = Command('!auf',  event_handler, real_runner=auf)
 
     da_token = os.environ.get('DA_ACCESS_TOKEN', 'set_dame_token')
-    donat = DonatApi(token=da_token)
+    donat = DonatApi(token=da_token, handler=event_handler)
 
     await asyncio.gather(
         run_twitch_bot(event_handler),

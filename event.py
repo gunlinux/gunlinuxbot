@@ -1,6 +1,7 @@
 from models.user import User
 from models.mssg import Mssg
 from models.command import Command
+from models.events import Event
 
 
 class EventHandler:
@@ -39,6 +40,10 @@ class EventHandler:
             if message.content.startswith(command_name):
                 print(f'detected command: {command}')
                 await command.run(mssg, user)
+
+    async def handle_donation_event(self, event: Event):
+        mssg_text = f"@gunlinux {event.username} пожертвовал {event.amount_formatted} {event.currency} | {event.message}"
+        await self.chat(mssg_text)
 
     def show_users(self):
         print('users:')
