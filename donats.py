@@ -4,6 +4,7 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 from models.events import Event
+
 load_dotenv()
 
 
@@ -13,15 +14,17 @@ class DonatApi:
     handler = None
 
     async def run(self):
-        print('rconnect')
-        await self.sio.connect("wss://socket.donationalerts.ru:443", transports="websocket")
-        print('rwait')
+        print("rconnect")
+        await self.sio.connect(
+            "wss://socket.donationalerts.ru:443", transports="websocket"
+        )
+        print("rwait")
         await self.sio.wait()
-        print('end')
+        print("end")
 
     async def default_handler_function(self, event):
-        mssg = f'''{event.username} пожертвовал {event.amount_formatted}
-                    {event.currency} | {event.message}'''
+        mssg = f"""{event.username} пожертвовал {event.amount_formatted}
+                    {event.currency} | {event.message}"""
         print(mssg)
 
     def __init__(self, token, handler=None):
@@ -35,22 +38,24 @@ class DonatApi:
 
         @self.sio.on("connect")
         async def on_connect():
-            print('connect')
-            await self.sio.emit("add-user", {"token": self.token, "type": "alert_widget"})
-            print('emit')
+            print("connect")
+            await self.sio.emit(
+                "add-user", {"token": self.token, "type": "alert_widget"}
+            )
+            print("emit")
 
         @self.sio.event
-        async def message(data):
-            print('i received a message!')
+        async def message(data):  # pylint: disable=unused-argument
+            print("i received a message!")
 
-        @self.sio.on('*')
+        @self.sio.on("*")
         async def catch_all(event, data):
-            print('cats all')
-            print(f'{event} {data}')
+            print("cats all")
+            print(f"{event} {data}")
 
         @self.sio.on("donation")
         async def on_message(data):
-            print('on_message')
+            print("on_message")
             data = json.loads(data)
             print(f"date failed = {data['date_created']}")
 
@@ -75,6 +80,6 @@ class DonatApi:
                     data["_is_test_alert"],
                     data["message_type"],
                     data.get("preset_id", None),
-                    data
-                    )
+                    data,
                 )
+            )

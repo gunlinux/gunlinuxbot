@@ -4,7 +4,7 @@ from typing import Any
 
 @dataclass
 class Event:
-    id: int
+    id_: int
     alert_type: str
     is_shown: str
     additional_data: dict
