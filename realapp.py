@@ -12,9 +12,9 @@ load_dotenv()
 
 
 async def run_twitch_bot(handler):
-    access_token = os.environ.get('ACCESS_TOKEN', 'set_Dame_token')
+    access_token = os.environ.get("ACCESS_TOKEN", "set_Dame_token")
     event_loop = asyncio.get_running_loop()
-    bot = TwitchBot(access_token=access_token, loop=event_loop, handler=handler, debug=True)
+    bot = TwitchBot(access_token=access_token, loop=event_loop, handler=handler)
     await bot.start()
 
 
@@ -24,24 +24,21 @@ async def run_test():
         print(1)
 
 
-async def auf(message, user, event_handler=None):
+async def auf(message, user, event_handler=None):  # pylint: disable=unused-argument
     if event_handler:
-        await event_handler.chat(f'@{user.username} Воистину ауф AUF AUF AUF AUF')
+        await event_handler.chat(f"@{user.username} Воистину ауф AUF AUF AUF AUF")
 
 
 async def main():
     event_handler = EventHandler()
-    Command('!ауф',  event_handler, real_runner=auf)
-    Command('!auf',  event_handler, real_runner=auf)
+    Command("!ауф", event_handler, real_runner=auf)
+    Command("!auf", event_handler, real_runner=auf)
 
-    da_token = os.environ.get('DA_ACCESS_TOKEN', 'set_dame_token')
+    da_token = os.environ.get("DA_ACCESS_TOKEN", "set_dame_token")
     donat = DonatApi(token=da_token, handler=event_handler)
 
-    await asyncio.gather(
-        run_twitch_bot(event_handler),
-        donat.run()
-    )
+    await asyncio.gather(run_twitch_bot(event_handler), donat.run())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

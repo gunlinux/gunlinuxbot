@@ -2,14 +2,14 @@ from datetime import datetime
 
 
 class User:
-    id: int
+    id_: int
     username: str
     last_mssg: datetime
     first_mssg: datetime
     messages_count: int = 0
 
-    def __init__(self, id, username):
-        self.id = id
+    def __init__(self, id_, username):
+        self.id_ = id_
         self.username = username
         self.first_mssg = datetime.now()
 
