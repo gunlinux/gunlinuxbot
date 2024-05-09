@@ -59,6 +59,10 @@ class EventHandler:
 
     async def handle_custom_reward(self, event: Event):
         print('probable custom reward')
+        if event.message == 'shitcode':
+            mssg_text = f'@gunlinux @{event.username} просит Дашу найти говнокод'
+            await self.chat(mssg_text)
+
 
     def show_users(self):
         print("users:")
