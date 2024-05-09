@@ -47,9 +47,18 @@ class EventHandler:
                 await command.run(mssg, user)
 
     async def handle_donation_event(self, event: Event):
-        mssg_text = f"""@gunlinux {event.username} пожертвовал {event.amount_formatted} \
-            {event.currency} | {event.message}"""
-        await self.chat(mssg_text)
+        print(event)
+        print(dir(event))
+        if event.alert_type == '1':
+            mssg_text = f"""@gunlinux {event.username} пожертвовал {event.amount_formatted} \
+                {event.currency} | {event.message}"""
+            await self.chat(mssg_text)
+
+        if event.alert_type == '19':
+            return await self.handle_custom_reward(event)
+
+    async def handle_custom_reward(self, event: Event):
+        print('probable custom reward')
 
     def show_users(self):
         print("users:")
