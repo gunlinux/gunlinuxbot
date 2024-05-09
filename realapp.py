@@ -42,6 +42,11 @@ async def dasha_on(message, user, event_handler=None):
     dasha_show()
 
 
+async def pasha_help(message, user, event_handler=None):
+    from obs import pasha_help_show 
+    pasha_help_show()
+
+
 async def dasha_off(message, user, event_handler=None):
     from obs import dasha_hide
     dasha_hide()
@@ -55,6 +60,8 @@ async def main():
     Command("auf", event_handler, real_runner=auf)
     Command("#shitcode", event_handler, real_runner=dasha_on)
     Command("$shitcode", event_handler, real_runner=dasha_off)
+    Command("$help", event_handler, real_runner=pasha_help)
+    Command("#help", event_handler, real_runner=pasha_help)
 
     da_token = os.environ.get("DA_ACCESS_TOKEN", "set_dame_token")
     donat = DonatApi(token=da_token, handler=event_handler)
