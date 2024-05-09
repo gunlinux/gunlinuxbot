@@ -42,6 +42,13 @@ class EventHandler:
         self.mssgs.append(mssg)
         print(f"{user.username}: {mssg.mssg}")
         for command_name, command in self.commands.items():
+            if content.startswith('#'):
+                # ignoring rewards syntax
+                continue
+            # TODO Костыль
+            if content.startswith('$') and user.username != 'gunlinux':
+                # ignoring rewards syntax
+                continue
             if content.startswith(command_name):
                 print(f"detected command: {command}")
                 await command.run(mssg, user)
@@ -60,9 +67,13 @@ class EventHandler:
     async def handle_custom_reward(self, event: Event):
         print('probable custom reward')
         if event.message == 'shitcode':
+            # TODO move to custom handling
             mssg_text = f'@gunlinux @{event.username} просит Дашу найти говнокод'
             await self.chat(mssg_text)
-
+            for command_name, command in self.commands.items():
+                if command_name == '#shitcode':
+                    print('doint shitcode command')
+                    await command.run(None, None)
 
     def show_users(self):
         print("users:")

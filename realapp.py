@@ -37,12 +37,24 @@ async def auf(message, user, event_handler=None):
         await event_handler.chat(f"@{user.username} Воистину {auf_str}")
 
 
+async def dasha_on(message, user, event_handler=None):
+    from obs import dasha_show
+    dasha_show()
+
+
+async def dasha_off(message, user, event_handler=None):
+    from obs import dasha_hide
+    dasha_hide()
+
+
 async def main():
     event_handler = EventHandler()
     Command("ауф", event_handler, real_runner=auf)
     Command("gunlinauf", event_handler, real_runner=auf)
     Command("awoo", event_handler, real_runner=auf)
     Command("auf", event_handler, real_runner=auf)
+    Command("#shitcode", event_handler, real_runner=dasha_on)
+    Command("$shitcode", event_handler, real_runner=dasha_off)
 
     da_token = os.environ.get("DA_ACCESS_TOKEN", "set_dame_token")
     donat = DonatApi(token=da_token, handler=event_handler)
