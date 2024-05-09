@@ -14,6 +14,8 @@ class EventHandler:
 
     def __init__(self):
         self.commands = {}
+        self.users = set()
+        self.mssgs = list()
         pass
 
     def __str__(self):
@@ -34,8 +36,8 @@ class EventHandler:
         print(type(message))
         if not chatter:
             return
-        user = self.get_or_add_user(chatter.id_, chatter.name)
-        mssg = Mssg(id_=message.id_, mssg=content, user_id=chatter.id_)
+        user = self.get_or_add_user(chatter.id, chatter.name)
+        mssg = Mssg(id_=message.id, mssg=content, user_id=chatter.id)
         user.new_mssg()
         self.mssgs.append(mssg)
         print(f"{user.username}: {mssg.mssg}")
