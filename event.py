@@ -9,10 +9,13 @@ from models.events import Event
 class EventHandler:
     users: set[User] = field(default_factory=set)
     mssgs: list[Mssg] = field(default_factory=list)
-    commands: dict = field(default_factory=list)
+    commands: dict = field(default_factory=dict)
     twitch_instance = None
 
     def __init__(self):
+        self.commands = {}
+        self.users = set()
+        self.mssgs = list()
         pass
 
     def __str__(self):
@@ -33,20 +36,44 @@ class EventHandler:
         print(type(message))
         if not chatter:
             return
-        user = self.get_or_add_user(chatter.id_, chatter.name)
-        mssg = Mssg(id_=message.id_, mssg=content, user_id=chatter.id_)
+        user = self.get_or_add_user(chatter.id, chatter.name)
+        mssg = Mssg(id_=message.id, mssg=content, user_id=chatter.id)
         user.new_mssg()
         self.mssgs.append(mssg)
         print(f"{user.username}: {mssg.mssg}")
         for command_name, command in self.commands.items():
+            if content.startswith('#'):
+                # ignoring rewards syntax
+                continue
+            # TODO Костыль
+            if content.startswith('$') and user.username != 'gunlinux':
+                # ignoring rewards syntax
+                continue
             if content.startswith(command_name):
                 print(f"detected command: {command}")
                 await command.run(mssg, user)
 
     async def handle_donation_event(self, event: Event):
-        mssg_text = f"""@gunlinux {event.username} пожертвовал {event.amount_formatted} \
-            {event.currency} | {event.message}"""
-        await self.chat(mssg_text)
+        print(event)
+        print(dir(event))
+        if event.alert_type == '1':
+            mssg_text = f"""@gunlinux {event.username} пожертвовал {event.amount_formatted} \
+                {event.currency} | {event.message}"""
+            await self.chat(mssg_text)
+
+        if event.alert_type == '19':
+            return await self.handle_custom_reward(event)
+
+    async def handle_custom_reward(self, event: Event):
+        print('probable custom reward')
+        if event.message == 'shitcode':
+            # TODO move to custom handling
+            mssg_text = f'@gunlinux @{event.username} просит Дашу найти говнокод'
+            await self.chat(mssg_text)
+            for command_name, command in self.commands.items():
+                if command_name == '#shitcode':
+                    print('doint shitcode command')
+                    await command.run(None, None)
 
     def show_users(self):
         print("users:")

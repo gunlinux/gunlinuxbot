@@ -23,7 +23,7 @@ class DonatApi:
         print("end")
 
     async def default_handler_function(self, event):
-        mssg = f"""{event.username} пожертвовал {event.amount_formatted}
+        mssg = f"""{event.username} пожертвовал. {event.amount_formatted}
                     {event.currency} | {event.message}"""
         print(mssg)
 
