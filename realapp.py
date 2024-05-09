@@ -1,5 +1,6 @@
 import os
 import asyncio
+import random
 
 from dotenv import load_dotenv
 from twitchbot import TwitchBot
@@ -24,15 +25,24 @@ async def run_test():
         print(1)
 
 
-async def auf(message, user, event_handler=None):  # pylint: disable=unused-argument
+async def auf(message, user, event_handler=None):
+    symbols = ["AWOO", "AUF", "gunlinAuf"]
+    symbols_len = random.randint(6, 12)
+    out = []
+    for i in range(symbols_len):
+        out.append(random.choice(symbols))
+
     if event_handler:
-        await event_handler.chat(f"@{user.username} Воистину ауф AUF AUF AUF AUF")
+        auf_str = " ".join(out)
+        await event_handler.chat(f"@{user.username} Воистину {auf_str}")
 
 
 async def main():
     event_handler = EventHandler()
-    Command("!ауф", event_handler, real_runner=auf)
-    Command("!auf", event_handler, real_runner=auf)
+    Command("ауф", event_handler, real_runner=auf)
+    Command("gunlinauf", event_handler, real_runner=auf)
+    Command("awoo", event_handler, real_runner=auf)
+    Command("auf", event_handler, real_runner=auf)
 
     da_token = os.environ.get("DA_ACCESS_TOKEN", "set_dame_token")
     donat = DonatApi(token=da_token, handler=event_handler)
