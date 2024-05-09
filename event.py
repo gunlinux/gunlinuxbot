@@ -9,10 +9,11 @@ from models.events import Event
 class EventHandler:
     users: set[User] = field(default_factory=set)
     mssgs: list[Mssg] = field(default_factory=list)
-    commands: dict = field(default_factory=list)
+    commands: dict = field(default_factory=dict)
     twitch_instance = None
 
     def __init__(self):
+        self.commands = {}
         pass
 
     def __str__(self):
