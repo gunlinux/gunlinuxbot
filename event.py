@@ -75,6 +75,16 @@ class EventHandler:
                     print('doint shitcode command')
                     await command.run(None, None)
 
+        if event.message == 'help':
+            # TODO move to custom handling
+            mssg_text = f'@gunlinux @{event.username} просит помощь'
+            await self.chat(mssg_text)
+            for command_name, command in self.commands.items():
+                if command_name == '#help':
+                    print('doint shitcode command')
+                    await command.run(None, None)
+
+
     def show_users(self):
         print("users:")
         for user in self.users:
