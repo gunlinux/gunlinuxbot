@@ -1,5 +1,5 @@
 import os
-import time
+import asyncio
 
 from obswebsocket import obsws, requests  # noqa: E402
 from dotenv import load_dotenv
@@ -37,7 +37,7 @@ def dasha_show():
     obs.disconnect()
 
 
-def pasha_help_show():
+async def pasha_help_show():
 
     obs = Obs()
     obs.connect()
@@ -47,7 +47,7 @@ def pasha_help_show():
             sceneName="pasha_help", sceneItemId=1, sceneItemEnabled=True
         )
     ))
-    time.sleep(9)
+    await asyncio.sleep(9)
     print(obs.call(
         requests.SetSceneItemEnabled(
             sceneName="pasha_help", sceneItemId=1, sceneItemEnabled=False
@@ -66,6 +66,3 @@ def dasha_hide():
         )
     )
     obs.disconnect()
-
-if __name__ == '__main__':
-    pasha_help_show()

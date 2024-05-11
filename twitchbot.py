@@ -1,4 +1,5 @@
 from twitchio.ext import commands
+from gunlinuxbot.handlers import HandlerEvent
 
 
 class TwitchBot(commands.Bot):
@@ -36,10 +37,10 @@ class TwitchBot(commands.Bot):
             print("echo ignore")
             return
 
-        print(message.content)
-
-        if self.handler_function:
-            await self.handler_function(message)
+        if message and message.author and message.author.name:
+            event = HandlerEvent(mssg=message.content, user=message.author.name)
+            if self.handler_function:
+                await self.handler_function(event)
 
     async def send_message(self, message):
         if self.connected_channels:
