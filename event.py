@@ -64,6 +64,14 @@ class EventHandler:
         if event.alert_type == '19':
             return await self.handle_custom_reward(event)
 
+        if event.alert_type == '6':
+            return await self.handle_follow_event(event)
+
+    async def handle_follow_event(self, event: Event):
+        # TODO move to custom handling
+        mssg_text = f'@gunlinux @{event.username} started follow auf'
+        await self.chat(mssg_text)
+
     async def handle_custom_reward(self, event: Event):
         print('probable custom reward')
         if event.message == 'shitcode':
