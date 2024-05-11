@@ -31,7 +31,7 @@ class EventHandler(abc.ABC):
         pass
 
     def register(self, name, command):
-        print(f"successfully registed command {name}")
+        logger.debug("successfully registed command %s", name)
         self.commands[name] = command
 
     def set_twitch_instance(self, instance):
@@ -39,20 +39,17 @@ class EventHandler(abc.ABC):
         self.twitch_instance = instance
 
     async def run_command(self, event: HandlerEvent):
-        print(f'run_command {event}')
-        print(self.commands)
+        logger.debug('run_command %s', event)
         for command_name, command in self.commands.items():
             if event.mssg.startswith("$") and event.user != self.admin:
                 # ignoring admin syntax
-                print('ignoreing admin')
-                logger.info(f"ignoring admin command {event.mssg}")
+                logger.info("ignoring admin command %s", event.mssg)
                 continue
 
             if event.mssg.startswith(command_name):
-                print(f"detected command: {command}")
+                logger.debug("detected command: %s", command)
                 result = await command.run(event)
                 if result:
-                    print(f'if result {result}')
                     await self.chat(result)
 
     async def chat(self, mssg):

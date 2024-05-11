@@ -1,5 +1,9 @@
+import logging
+
 from twitchio.ext import commands
 from gunlinuxbot.handlers import HandlerEvent
+
+logger = logging.getLogger(__name__)
 
 
 class TwitchBot(commands.Bot):
@@ -24,8 +28,7 @@ class TwitchBot(commands.Bot):
     async def event_ready(self):
         # Notify us when everything is ready!
         # We are logged in and ready to chat and use commands...
-        print(f"Logged in as | {self.nick}")
-        print(f"User id is | {self.user_id}")
+        logger.debug("Logged in as %s id: %s", self.nick, self.user_id)
         if self.connected_channels:
             for channel in self.connected_channels:
                 await channel.send(f"Logged in as | {self.nick}")
@@ -34,7 +37,7 @@ class TwitchBot(commands.Bot):
         # Messages with echo set to True are messages sent by the bot...
         # For now we just want to ignore them...
         if message.echo and not self.debug:
-            print("echo ignore")
+            logger.debug("echo ignore")
             return
 
         if message and message.author and message.author.name:

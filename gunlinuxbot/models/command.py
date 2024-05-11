@@ -1,20 +1,22 @@
+import logging
 from ..handlers import EventHandler
+
+logger = logging.getLogger(__name__)
 
 
 class Command:
     def __init__(self, name, event_handler: EventHandler, real_runner=None):
-        print(f'command registed {name}')
         self.name = name
         self.event_handler: EventHandler = event_handler
         self.event_handler.register(self.name, self)
         self.real_runner = real_runner
 
     async def run(self, event):
-        print(f'run command {self.name}')
+        logger.debug("run command %s", self.name)
         if self.real_runner is None:
-            print('not implemented yet')
+            logger.debug("not implemented yet")
             return
         return await self.real_runner(event)
 
     def __str__(self):
-        return f'<Command> {self.name}'
+        return f"<Command> {self.name}"
