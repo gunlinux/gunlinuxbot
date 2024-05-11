@@ -1,72 +1,74 @@
 import os
 import asyncio
 import random
+import logging
 
 from dotenv import load_dotenv
 from twitchbot import TwitchBot
-from event import EventHandler
-from models.command import Command
+from gunlinuxbot.handlers import TwitchHandler, DonatHandler, HandlerEvent
+from gunlinuxbot.models.command import Command
 from donats import DonatApi
 
-
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
-async def run_twitch_bot(handler):
-    access_token = os.environ.get("ACCESS_TOKEN", "set_Dame_token")
-    event_loop = asyncio.get_running_loop()
-    bot = TwitchBot(access_token=access_token, loop=event_loop, handler=handler)
-    await bot.start()
-
-
-async def run_test():
-    while True:
-        await asyncio.sleep(1)
-        print(1)
-
-
-async def auf(message, user, event_handler=None):
+async def auf(event: HandlerEvent):
     symbols = ["AWOO", "AUF", "gunlinAuf"]
     symbols_len = random.randint(6, 12)
     out = []
-    for i in range(symbols_len):
+    for _ in range(symbols_len):
         out.append(random.choice(symbols))
 
-    if event_handler:
-        auf_str = " ".join(out)
-        await event_handler.chat(f"@{user.username} Воистину {auf_str}")
+    auf_str = " ".join(out)
+    return f"@{event.user} Воистину {auf_str}"
 
 
-async def dasha_on(message, user, event_handler=None):
+async def dasha_on(event: HandlerEvent):
     from obs import dasha_show
+
     dasha_show()
+    return f'@gunlinux, а  вот {event.user} почувствовал запах плохого кода'
 
 
-async def pasha_help(message, user, event_handler=None):
-    from obs import pasha_help_show 
-    pasha_help_show()
+async def pasha_help(event: HandlerEvent):
+    from obs import pasha_help_show
+
+    await pasha_help_show()
+    return f'@gunlinux, а  вот {event.user} призвал помощь'
 
 
-async def dasha_off(message, user, event_handler=None):
+async def dasha_off(event: HandlerEvent):
     from obs import dasha_hide
+    logger.debug('triggered command dasha_off %s', event)
+
     dasha_hide()
 
 
 async def main():
-    event_handler = EventHandler()
-    Command("ауф", event_handler, real_runner=auf)
-    Command("gunlinauf", event_handler, real_runner=auf)
-    Command("awoo", event_handler, real_runner=auf)
-    Command("auf", event_handler, real_runner=auf)
-    Command("#shitcode", event_handler, real_runner=dasha_on)
-    Command("$shitcode", event_handler, real_runner=dasha_off)
-    Command("$help", event_handler, real_runner=pasha_help)
-    Command("#help", event_handler, real_runner=pasha_help)
+    twitch_handler = TwitchHandler(admin="gunlinux")
+    Command("ауф", twitch_handler, real_runner=auf)
+    Command("gunlinauf", twitch_handler, real_runner=auf)
+    Command("awoo", twitch_handler, real_runner=auf)
+    Command("auf", twitch_handler, real_runner=auf)
 
+    donats_handler = DonatHandler(admin="gunlinux")
+    Command("#shitcode", donats_handler, real_runner=dasha_on)
+    Command("$shitcode", twitch_handler, real_runner=dasha_off)
+    Command("$help", twitch_handler, real_runner=pasha_help)
+    Command("#help", donats_handler, real_runner=pasha_help)
+
+    access_token = os.environ.get("ACCESS_TOKEN", "set_Dame_token")
+    event_loop = asyncio.get_running_loop()
+    bot = TwitchBot(access_token=access_token, loop=event_loop, handler=twitch_handler)
     da_token = os.environ.get("DA_ACCESS_TOKEN", "set_dame_token")
-    donat = DonatApi(token=da_token, handler=event_handler)
+    donats_handler.set_twitch_instance(bot)
+    donat = DonatApi(token=da_token, handler=donats_handler)
 
-    await asyncio.gather(run_twitch_bot(event_handler), donat.run())
+    await asyncio.gather(
+        bot.start(),
+        donat.run(),
+    )
 
 
 if __name__ == "__main__":

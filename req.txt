@@ -1,10 +1,5 @@
 twitchio
-requests
 python-dotenv
 DonationAlertsAPI
-websocket-client
-requests
 python-socketio
-aiohttp
-websockets
 obs-websocket-py

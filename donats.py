@@ -1,85 +1,65 @@
 import json
+import logging
 import socketio
-from datetime import datetime
+from typing import TYPE_CHECKING, Optional
 
 from dotenv import load_dotenv
-from models.events import Event
+from gunlinuxbot.handlers import HandlerEvent
+
+if TYPE_CHECKING:
+    from gunlinuxbot.handlers import DonatHandler
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class DonatApi:
-    sio = None
-    token = None
-    handler = None
 
     async def run(self):
-        print("rconnect")
+        logger.critical("rconnect")
         await self.sio.connect(
             "wss://socket.donationalerts.ru:443", transports="websocket"
         )
-        print("rwait")
+        logger.critical("rwait")
         await self.sio.wait()
-        print("end")
-
-    async def default_handler_function(self, event):
-        mssg = f"""{event.username} пожертвовал. {event.amount_formatted}
-                    {event.currency} | {event.message}"""
-        print(mssg)
+        logger.critical("down")
 
     def __init__(self, token, handler=None):
         self.sio = socketio.AsyncClient()
+
         self.token = token
-        if handler is None:
-            self.handler = None
-            self.handler_function = self.default_hanlder_function
-        else:
-            self.handler = handler
+        self.handler: Optional['DonatHandler'] = handler
 
         @self.sio.on("connect")
-        async def on_connect():
-            print("connect")
+        async def on_connect() -> None:
             await self.sio.emit(
                 "add-user", {"token": self.token, "type": "alert_widget"}
             )
-            print("emit")
+            if not self.sio.connected:
+                logger.critical("connected failed")
+                return
+            logger.critical("connected")
 
         @self.sio.event
         async def message(data):  # pylint: disable=unused-argument
-            print("i received a message!")
+            logger.debug("i received a message! len: %s", len(data))
 
         @self.sio.on("*")
         async def catch_all(event, data):
-            print("cats all")
-            print(f"{event} {data}")
+            logger.debug("catch_all %s", event)
 
         @self.sio.on("donation")
         async def on_message(data):
             print("on_message")
             data = json.loads(data)
-            print(f"date failed = {data['date_created']}")
-
-            await self.handler.handle_donation_event(
-                Event(
-                    data["id"],
-                    data["alert_type"],
-                    data["is_shown"],
-                    json.loads(data["additional_data"]),
-                    data["billing_system"],
-                    data["billing_system_type"],
-                    data["username"],
-                    data["amount"],
-                    data["amount_formatted"],
-                    data["amount_main"],
-                    data["currency"],
-                    data["message"],
-                    data["header"],
-                    datetime.strptime(data["date_created"], "%Y-%m-%d %H:%M:%S"),
-                    data["emotes"],
-                    data["ap_id"],
-                    data["_is_test_alert"],
-                    data["message_type"],
-                    data.get("preset_id", None),
-                    data,
-                )
+            event = HandlerEvent(
+                alert_type=data['alert_type'],
+                amount_formatted=data['amount_formatted'],
+                mssg=data['message'],
+                user=data['username'],
+                currency=data['currency'],
             )
+            print(event)
+            if self.handler is not None:
+                return await self.handler.handle_event(event)
+            logger.critical('no handler wtf')
