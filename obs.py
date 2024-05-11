@@ -13,6 +13,8 @@ class Obs:
         host = os.environ.get("OBS_HOST", "localhost")
         port = int(os.environ.get("OBS_PORT", 4455))
         password = os.environ.get("OBS_PASSWORD")
+        if not password:
+            raise (ValueError)
         self.ws = obsws(host, port, password)
 
     def connect(self):
@@ -41,18 +43,18 @@ async def pasha_help_show():
 
     obs = Obs()
     obs.connect()
-    print(obs.call(requests.GetSceneItemList(sceneName="pasha_help")))
-    print(obs.call(
+    obs.call(requests.GetSceneItemList(sceneName="pasha_help"))
+    obs.call(
         requests.SetSceneItemEnabled(
             sceneName="pasha_help", sceneItemId=1, sceneItemEnabled=True
         )
-    ))
+    )
     await asyncio.sleep(9)
-    print(obs.call(
+    obs.call(
         requests.SetSceneItemEnabled(
             sceneName="pasha_help", sceneItemId=1, sceneItemEnabled=False
         )
-    ))
+    )
     obs.disconnect()
 
 

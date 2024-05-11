@@ -20,25 +20,19 @@ class DonatApi:
         await self.sio.connect(
             "wss://socket.donationalerts.ru:443", transports="websocket"
         )
-        logger.critical("rwait")
         await self.sio.wait()
-        logger.critical("down")
 
     def __init__(self, token, handler=None):
         self.sio = socketio.AsyncClient()
 
         self.token = token
-        self.handler: Optional['DonatHandler'] = handler
+        self.handler: Optional["DonatHandler"] = handler
 
         @self.sio.on("connect")
         async def on_connect() -> None:
             await self.sio.emit(
                 "add-user", {"token": self.token, "type": "alert_widget"}
             )
-            if not self.sio.connected:
-                logger.critical("connected failed")
-                return
-            logger.critical("connected")
 
         @self.sio.event
         async def message(data):  # pylint: disable=unused-argument
@@ -50,16 +44,15 @@ class DonatApi:
 
         @self.sio.on("donation")
         async def on_message(data):
-            print("on_message")
             data = json.loads(data)
             event = HandlerEvent(
-                alert_type=data['alert_type'],
-                amount_formatted=data['amount_formatted'],
-                mssg=data['message'],
-                user=data['username'],
-                currency=data['currency'],
+                alert_type=data["alert_type"],
+                amount_formatted=data["amount_formatted"],
+                mssg=data["message"],
+                user=data["username"],
+                currency=data["currency"],
             )
-            print(event)
+            logger.debug("donat on_message %s", event)
             if self.handler is not None:
                 return await self.handler.handle_event(event)
-            logger.critical('no handler wtf')
+            logger.critical("no handler wtf")
