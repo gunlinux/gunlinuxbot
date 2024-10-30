@@ -24,7 +24,7 @@ async def sender(bot, queue):
             mssg = process(new_event)
             if mssg:
                 await bot.send_message(mssg)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(2)
 
 
 async def main():
