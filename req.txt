@@ -1,0 +1,5 @@
+twitchio
+python-dotenv
+DonationAlertsAPI
+python-socketio
+obs-websocket-py
