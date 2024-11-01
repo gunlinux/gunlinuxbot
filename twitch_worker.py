@@ -6,9 +6,9 @@ import random
 
 from dotenv import load_dotenv
 
-from myqueue import RedisConnection, Queue
-from sender import Sender
-from handlers import TwitchEventHandler, HandlerEvent, Command
+from gunlinuxbot.myqueue import RedisConnection, Queue
+from gunlinuxbot.sender import Sender
+from gunlinuxbot.handlers import TwitchEventHandler, HandlerEvent, Command
 
 
 logger = logging.getLogger(__name__)

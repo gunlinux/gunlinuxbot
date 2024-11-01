@@ -3,8 +3,8 @@ import os
 import logging
 import json
 from dotenv import load_dotenv
-from twitchbot import TwitchBot
-from myqueue import RedisConnection, Queue
+from gunlinuxbot.twitch.twitchbot import TwitchBot
+from gunlinuxbot.myqueue import RedisConnection, Queue
 
 
 logger = logging.getLogger(__name__)

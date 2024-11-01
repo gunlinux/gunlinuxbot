@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 from dotenv import load_dotenv
-from myqueue import RedisConnection, Queue
+from .myqueue import RedisConnection, Queue
 
 
 logger = logging.getLogger(__name__)
