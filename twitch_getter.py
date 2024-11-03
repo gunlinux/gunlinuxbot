@@ -1,15 +1,15 @@
 import asyncio
 import os
-import logging
 import json
 from datetime import datetime
 
 from dotenv import load_dotenv
 from gunlinuxbot.twitch.twitchbot import TwitchBot
 from gunlinuxbot.myqueue import RedisConnection, Queue
+from gunlinuxbot.utils import logger_setup
 
 
-logger = logging.getLogger(__name__)
+logger = logger_setup('twitch_sender')
 
 
 async def init_process(queue):

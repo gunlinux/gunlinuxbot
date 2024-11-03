@@ -17,9 +17,7 @@ class DonatApi:
         await self.sio.connect(
             "wss://socket.donationalerts.ru:443", transports="websocket"
         )
-        print('connect')
         await self.sio.wait()
-        print('wtf')
 
     def __init__(self, token, handler=None):
         self.sio = socketio.AsyncClient()

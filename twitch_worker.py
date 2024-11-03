@@ -1,6 +1,5 @@
 import asyncio
 import os
-import logging
 import json
 import random
 
@@ -9,9 +8,10 @@ from dotenv import load_dotenv
 from gunlinuxbot.myqueue import RedisConnection, Queue
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.handlers import TwitchEventHandler, HandlerEvent, Command
+from gunlinuxbot.utils import logger_setup
 
 
-logger = logging.getLogger(__name__)
+logger = logger_setup('twitch_worker')
 
 
 async def process(handler: HandlerEvent, data):

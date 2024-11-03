@@ -1,6 +1,5 @@
 import asyncio
 import os
-import logging
 import json
 from datetime import datetime
 
@@ -9,9 +8,10 @@ import gunlinuxbot.donats.donats as donats
 from gunlinuxbot.myqueue import RedisConnection, Queue
 from gunlinuxbot.handlers import HandlerEvent
 from dataclasses import asdict
+from gunlinuxbot.utils import logger_setup
 
 
-logger = logging.getLogger(__name__)
+logger = logger_setup('donats_getter')
 
 
 async def init_process(queue):
@@ -25,7 +25,7 @@ async def init_process(queue):
             "timestamp": datetime.timestamp(datetime.now()),
             "data": asdict(message),
         }
-        print(f' new process_mssg da_events {payload}')
+        logger.debug('new process_mssg da_events %s', payload)
         await queue.push(json.dumps(payload))
     return process_mssg
 

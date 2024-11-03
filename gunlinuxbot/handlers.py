@@ -75,7 +75,7 @@ class EventHandler(ABC):
 
 class TwitchEventHandler(EventHandler):
     async def handle_event(self, event: HandlerEvent):
-        print(f"starting handle_message {event.mssg}")
+        logger.debug("starting handle_message %s", event.mssg)
         await self.run_command(event)
 
 
@@ -90,19 +90,19 @@ class DonatEventHandler(EventHandler):
         if event.alert_type == "6":
             return await self._follow(event)
 
-        print("handle_event not implemented yet %s", event)
+        logger.critical("handle_event not implemented yet %s", event)
 
     async def _donation(self, event: HandlerEvent):
-        print('_donation')
+        logger.debug("donat.event _donation")
         mssg_text = f"""{self.admin} {event.user} пожертвовал
             {event.amount_formatted} {event.currency} | {event.mssg}"""
         await self.chat(mssg_text)
 
     async def _follow(self, event: HandlerEvent):
-        print('_follow')
+        logger.debug("donat.event _follow")
         mssg_text = f"@gunlinux @{event.user} started follow auf"
         await self.chat(mssg_text)
 
     async def _custom_reward(self, event: HandlerEvent):
-        print(f'_custom_reward {event}')
+        logger.debug("donat.event _custom_reward %s", event)
         await self.run_command(event)

@@ -4,3 +4,4 @@ DonationAlertsAPI
 python-socketio
 obs-websocket-py
 redis
+coloredlogs
