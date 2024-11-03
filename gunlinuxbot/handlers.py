@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
-import logging
+from .utils import logger_setup
 
-logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from .sender import Sender
+
+logger = logger_setup('gunlinuxbot.handlers')
 
 
 @dataclass
@@ -35,7 +38,7 @@ class Command:
 
 class EventHandler(ABC):
 
-    def __init__(self, sender: "Sender", admin=None):
+    def __init__(self, sender: Sender, admin=None):
         self.commands: dict[str, Command] = {}
         self.sender = sender
         self.admin = admin
