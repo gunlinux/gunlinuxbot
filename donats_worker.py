@@ -1,40 +1,29 @@
 import asyncio
 import os
-import logging
 import json
-import random
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import RedisConnection, Queue
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.handlers import DonatEventHandler, HandlerEvent, Command
+from gunlinuxbot.utils import logger_setup
 
 
-logger = logging.getLogger(__name__)
+logger = logger_setup('donats_worker')
 
 
 async def process(handler: HandlerEvent, data):
     data = json.loads(data)
     payload_data = data.get("data", {})
     event = HandlerEvent(**payload_data)
-    print(f'process new event {event}')
+    logger.debug('process new event %s', event)
     await handler.handle_event(event)
-    logger.critical("something happened %s", event)
     await asyncio.sleep(1)
 
 
 async def test_event(event: HandlerEvent):
-    print(f'test_event process {event}')
-    return 'okface'
-    symbols = ["AWOO", "AUF", "gunlinAuf"]
-    symbols_len = random.randint(6, 12)
-    out = []
-    for _ in range(symbols_len):
-        out.append(random.choice(symbols))
-
-    auf_str = " ".join(out)
-    return f"@{event.user} Воистину {auf_str}"
+    return '#shitcode'
 
 
 async def main():

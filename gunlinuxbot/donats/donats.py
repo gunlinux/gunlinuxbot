@@ -1,10 +1,11 @@
 import json
 import logging
 import socketio
-from typing import TYPE_CHECKING, Optional
+from typing import Callable
 
 from dotenv import load_dotenv
-from ..handlers import  HandlerEvent
+from ..handlers import HandlerEvent
+
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -17,15 +18,13 @@ class DonatApi:
         await self.sio.connect(
             "wss://socket.donationalerts.ru:443", transports="websocket"
         )
-        print('connect')
         await self.sio.wait()
-        print('wtf')
 
-    def __init__(self, token, handler=None):
+    def __init__(self, token, handler: Callable[[HandlerEvent], None]):
         self.sio = socketio.AsyncClient()
 
         self.token = token
-        self.handler: Optional["DonatHandler"] = handler
+        self.handler: Callable[[HandlerEvent], None] = handler
 
         @self.sio.on("connect")
         async def on_connect() -> None:
