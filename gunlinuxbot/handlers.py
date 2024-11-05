@@ -1,12 +1,19 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from enum import Enum
 from .utils import logger_setup
 
 if TYPE_CHECKING:
     from .sender import Sender
 
 logger = logger_setup('gunlinuxbot.handlers')
+
+
+class DonationAlertTypes(Enum):
+    DONATION = "1"
+    CUSTOM_REWARD = "19"
+    FOLLOW = "6"
 
 
 @dataclass
@@ -38,7 +45,7 @@ class Command:
 
 class EventHandler(ABC):
 
-    def __init__(self, sender: Sender, admin=None):
+    def __init__(self, sender: "Sender", admin=None):
         self.commands: dict[str, Command] = {}
         self.sender = sender
         self.admin = admin
@@ -55,10 +62,15 @@ class EventHandler(ABC):
         logger.critical("setting instance")
         self.twitch_instance = instance
 
+    def is_admin(self, event):
+        if not event:
+            return
+        return event.user != self.admin
+
     async def run_command(self, event: Event):
         logger.debug("run_command %s", event)
         for command_name, command in self.commands.items():
-            if event.mssg.startswith("$") and event.user != self.admin:
+            if event.mssg.startswith("$") and not self.is_admin(event):
                 # ignoring admin syntax
                 logger.info("ignoring admin command %s", event.mssg)
                 continue
@@ -84,13 +96,13 @@ class TwitchEventHandler(EventHandler):
 
 class DonatEventHandler(EventHandler):
     async def handle_event(self, event: Event):
-        if event.alert_type == "1":
+        if event.alert_type == DonationAlertTypes.DONATION:
             return await self._donation(event)
 
-        if event.alert_type == "19":
+        if event.alert_type == DonationAlertTypes.CUSTOM_REWARD:
             return await self._custom_reward(event)
 
-        if event.alert_type == "6":
+        if event.alert_type == DonationAlertTypes.FOLLOW:
             return await self._follow(event)
 
         logger.critical("handle_event not implemented yet %s", event)

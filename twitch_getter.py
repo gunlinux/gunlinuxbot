@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 logger = logger_setup('twitch_sender')
 
 
-async def init_process(queue: Queue) -> Callable[[Message], Coroutine[Any, Any, None]]:
+async def init_process(queue: Queue) -> Callable[["Message"], Coroutine[Any, Any, None]]:
     process_queue: Queue = queue
 
-    async def process_mssg(message: Message) -> None:
+    async def process_mssg(message: "Message") -> None:
         if not message:
             return
         payload = {

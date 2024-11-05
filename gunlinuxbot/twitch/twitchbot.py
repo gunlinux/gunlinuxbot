@@ -1,22 +1,25 @@
-import logging
+import asyncio
+from typing import Optional, Callable
 
 from twitchio.ext import commands
+from ..utils import logger_setup
 
-logger = logging.getLogger(__name__)
+logger = logger_setup('twitch.twitchbot')
 
 
 class TwitchBot(commands.Bot):
 
     def __init__(
         self,
-        access_token,
-        default_channel="gunlinux",
-        loop=None,
-        handler=None,
+        access_token: str,
+        default_channel: str = "gunlinux",
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+        handler: Optional[Callable] = None,
+        debug: bool = False,
     ):
-        self.channels = [default_channel]
-        self.handler_function = handler
-        self.debug = False
+        self.channels: list[str] = [default_channel]
+        self.handler_function: Optional[Callable] = handler
+        self.debug: bool = debug
         super().__init__(
             token=access_token, prefix="?", initial_channels=self.channels, loop=loop
         )
@@ -25,9 +28,11 @@ class TwitchBot(commands.Bot):
         # Notify us when everything is ready!
         # We are logged in and ready to chat and use commands...
         logger.debug("Logged in as %s id: %s", self.nick, self.user_id)
-        if self.connected_channels:
-            for channel in self.connected_channels:
-                await channel.send(f"Logged in as | {self.nick}")
+        if not self.connected_channels:
+            logger.warning("no connected channels")
+            return
+        for channel in self.connected_channels:
+            await channel.send(f"Logged in as | {self.nick}")
 
     async def event_message(self, message):
         # Messages with echo set to True are messages sent by the bot...
@@ -41,6 +46,8 @@ class TwitchBot(commands.Bot):
                 await self.handler_function(message)
 
     async def send_message(self, message):
-        if self.connected_channels:
-            for channel in self.connected_channels:
-                await channel.send(message)
+        if not self.connected_channels:
+            logger.warning("no connected channels")
+            return
+        for channel in self.connected_channels:
+            await channel.send(message)
