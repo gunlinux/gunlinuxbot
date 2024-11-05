@@ -2,32 +2,34 @@ import asyncio
 import os
 import json
 import random
+from typing import Awaitable
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import RedisConnection, Queue
 from gunlinuxbot.sender import Sender
-from gunlinuxbot.handlers import TwitchEventHandler, HandlerEvent, Command
+from gunlinuxbot.handlers import TwitchEventHandler, Event, Command, EventHandler
 from gunlinuxbot.utils import logger_setup
 
 
-logger = logger_setup('twitch_worker')
+logger = logger_setup("twitch_worker")
 
 
-async def process(handler: HandlerEvent, data):
-    data = json.loads(data)
-    payload_data = data.get("data", {})
+async def process(handler: EventHandler, data: str) -> None:
+    process_data: dict = json.loads(data)
+    payload_data = process_data.get("data", {})
     mssg = payload_data.get("content", "")
     user = payload_data.get("author", {}).get("name")
     if not mssg or not user:
         return
-    event = HandlerEvent(mssg=mssg, user=user)
+    event: Event = Event(mssg=mssg, user=user)
     await handler.handle_event(event)
     logger.critical("something happened %s", event)
     await asyncio.sleep(1)
+    return None
 
 
-async def auf(event: HandlerEvent):
+async def auf(event: Event) -> str:
     symbols = ["AWOO", "AUF", "gunlinAuf"]
     symbols_len = random.randint(6, 12)
     out = []
@@ -38,7 +40,7 @@ async def auf(event: HandlerEvent):
     return f"@{event.user} Воистину {auf_str}"
 
 
-async def main():
+async def main() -> Awaitable[None]:
     load_dotenv()
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
     redis_connection = RedisConnection(redis_url, name="twitch_mssgs")

@@ -10,7 +10,7 @@ logger = logger_setup('gunlinuxbot.handlers')
 
 
 @dataclass
-class HandlerEvent:
+class Event:
     mssg: str
     user: str
     amount_formatted: str = ""
@@ -44,7 +44,7 @@ class EventHandler(ABC):
         self.admin = admin
 
     @abstractmethod
-    async def handle_event(self, event: HandlerEvent):
+    async def handle_event(self, event: Event):
         pass
 
     def register(self, name, command):
@@ -55,7 +55,7 @@ class EventHandler(ABC):
         logger.critical("setting instance")
         self.twitch_instance = instance
 
-    async def run_command(self, event: HandlerEvent):
+    async def run_command(self, event: Event):
         logger.debug("run_command %s", event)
         for command_name, command in self.commands.items():
             if event.mssg.startswith("$") and event.user != self.admin:
@@ -77,13 +77,13 @@ class EventHandler(ABC):
 
 
 class TwitchEventHandler(EventHandler):
-    async def handle_event(self, event: HandlerEvent):
+    async def handle_event(self, event: Event):
         logger.debug("starting handle_message %s", event.mssg)
         await self.run_command(event)
 
 
 class DonatEventHandler(EventHandler):
-    async def handle_event(self, event: HandlerEvent):
+    async def handle_event(self, event: Event):
         if event.alert_type == "1":
             return await self._donation(event)
 
@@ -95,17 +95,17 @@ class DonatEventHandler(EventHandler):
 
         logger.critical("handle_event not implemented yet %s", event)
 
-    async def _donation(self, event: HandlerEvent):
+    async def _donation(self, event: Event):
         logger.debug("donat.event _donation")
         mssg_text = f"""{self.admin} {event.user} пожертвовал
             {event.amount_formatted} {event.currency} | {event.mssg}"""
         await self.chat(mssg_text)
 
-    async def _follow(self, event: HandlerEvent):
+    async def _follow(self, event: Event):
         logger.debug("donat.event _follow")
         mssg_text = f"@gunlinux @{event.user} started follow auf"
         await self.chat(mssg_text)
 
-    async def _custom_reward(self, event: HandlerEvent):
+    async def _custom_reward(self, event: Event):
         logger.debug("donat.event _custom_reward %s", event)
         await self.run_command(event)

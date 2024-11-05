@@ -1,7 +1,7 @@
 from redis import asyncio as aioredis
 import logging
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 from redis.asyncio.client import Redis
 
 
@@ -21,15 +21,15 @@ class Connection(ABC):
 class RedisConnection(Connection):
     def __init__(self, url, name):
         self.url = url
-        self.name = name
+        self.name: str = name
         self.redis: Redis = aioredis.from_url(self.url)
 
-    async def push(self, data):
-        await self.redis.rpush(self.name, data)
+    async def push(self, data: str) -> None:
+        await self.redis.rpush(self.name, data) #  type: ignore
 
-    async def pop(self):
+    async def pop(self) -> Optional[str]:
         if self.redis is not None:
-            return await self.redis.lpop(self.name)
+            return await self.redis.lpop(self.name) # type: ignore
 
 
 class Queue:
