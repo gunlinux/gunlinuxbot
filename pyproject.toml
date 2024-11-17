@@ -1,0 +1,52 @@
+[project]
+name = "rebot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "donationalertsapi>=2.0.2",
+    "obs-websocket-py>=1.0",
+    "python-dotenv>=1.0.1",
+    "python-socketio>=5.11.4",
+    "redis>=5.2.0",
+    "twitchio>=2.10.0",
+]
+
+[dependency-groups]
+lint = [
+    "mypy>=1.13.0",
+    "ruff>=0.7.4",
+    "types-redis>=4.6.0.20241004",
+]
+dev = [
+    "pytest>=8.3.3",
+]
+
+[tool.uv]
+default-groups = ["dev", "lint"]
+
+[tool.ruff.lint]
+# 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+select = ["ALL"]
+
+# 2. Avoid enforcing line-length violations (`E501`)
+ignore = ["E501", "Q000", "D", "DTZ005"]
+
+# 3. Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+# 4. Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"**/{tests,docs,tools}/*" = ["E402"]
+
+[tool.ruff.format]
+# 5. Use single quotes in `ruff format`.
+quote-style = "single"
+
+[tool.mypy]
+warn_return_any = false
+warn_unused_configs = false
+ignore_missing_imports = true
+check_untyped_defs = true
