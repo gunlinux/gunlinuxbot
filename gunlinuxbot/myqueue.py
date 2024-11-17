@@ -1,55 +1,58 @@
-from redis import asyncio as aioredis
 from abc import ABC, abstractmethod
-from typing import Any, Optional
-from .utils import logger_setup
-from redis.asyncio.client import Redis
+from typing import TYPE_CHECKING
+
+from redis import asyncio as aioredis
+
+if TYPE_CHECKING:
+    from redis.asyncio.client import Redis
 from redis.exceptions import ConnectionError, TimeoutError
 
+from .utils import logger_setup
 
-logger = logger_setup("gunlinuxbot.myqueue")
+logger = logger_setup('gunlinuxbot.myqueue')
 
 
 class Connection(ABC):
     @abstractmethod
-    async def push(self, data):
+    async def push(self, data: str) -> None:
         pass
 
     @abstractmethod
-    async def pop(self) -> Any:
+    async def pop(self) -> str | None:
         pass
 
 
 class RedisConnection(Connection):
-    def __init__(self, url: str, name: str):
+    def __init__(self, url: str, name: str) -> None:
         self.url = url
         self.name: str = name
         self.redis: Redis = aioredis.from_url(self.url)
 
     async def push(self, data: str) -> None:
         if self.redis is None:
-            logger.critical("cant push no redis conn")
+            logger.critical('cant push no redis conn')
             return
         try:
-            await self.redis.rpush(self.name, data)  # type: ignore
+            await self.redis.rpush(self.name, data)
         except (ConnectionError, TimeoutError) as e:
-            logger.critical("cant push no redis conn, %s", e)
+            logger.critical('cant push no redis conn, %s', e)
 
-    async def pop(self) -> Optional[str]:
+    async def pop(self) -> str | None:
         if self.redis is None:
-            logger.critical("cant pop no redis conn")
-            return
+            logger.critical('cant pop no redis conn')
+            return None
         try:
-            return await self.redis.lpop(self.name)  # type: ignore
+            return await self.redis.lpop(self.name)
         except (ConnectionError, TimeoutError) as e:
-            logger.critical("cant pop from redis conn, %s", e)
+            logger.critical('cant pop from redis conn, %s', e)
 
 
 class Queue:
-    def __init__(self, connection: Connection):
+    def __init__(self, connection: Connection) -> None:
         self.connection: Connection = connection
 
     async def push(self, data: str) -> None:
         await self.connection.push(data)
 
-    async def pop(self) -> Optional[str]:
+    async def pop(self) -> str | None:
         return await self.connection.pop()

@@ -1,9 +1,9 @@
-import logging
 import importlib.util
+import logging
 import os
 
 
-def logger_setup(name):
+def logger_setup(name: str) -> logging.Logger:
     default_format = "[%(asctime)s] %(name)-18s [%(levelname)s] %(message)s"
     log_format = os.getenv("LOG_FORMAT", default_format)
     if importlib.util.find_spec("coloredlogs"):

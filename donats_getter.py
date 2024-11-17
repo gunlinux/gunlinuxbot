@@ -1,16 +1,17 @@
 import asyncio
-import os
 import json
+import os
+from collections.abc import Callable, Coroutine
+from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Callable, Coroutine
+from typing import Any
 
 from dotenv import load_dotenv
-import gunlinuxbot.donats.donats as donats
-from gunlinuxbot.myqueue import RedisConnection, Queue
-from gunlinuxbot.handlers import Event
-from dataclasses import asdict
-from gunlinuxbot.utils import logger_setup
 
+from gunlinuxbot.donats import donats
+from gunlinuxbot.handlers import Event
+from gunlinuxbot.myqueue import Queue, RedisConnection
+from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup("donats_getter")
 
@@ -42,7 +43,6 @@ async def main() -> None:
     handler = await init_process(queue)
     bot = donats.DonatApi(token=access_token, handler=handler)
     await bot.run()
-    return None
 
 
 if __name__ == "__main__":

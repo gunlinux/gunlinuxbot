@@ -1,19 +1,18 @@
 import asyncio
-import os
 import json
+import os
 
 from dotenv import load_dotenv
 
-from gunlinuxbot.myqueue import RedisConnection, Queue
+from gunlinuxbot.handlers import Command, DonatEventHandler, Event, EventHandler
+from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
-from gunlinuxbot.handlers import DonatEventHandler, Event, Command, EventHandler
 from gunlinuxbot.utils import logger_setup
-
 
 logger = logger_setup('donats_worker')
 
 
-async def process(handler: EventHandler, data):
+async def process(handler: EventHandler, data: str) -> None:
     data = json.loads(data)
     payload_data = data.get("data", {})
     event: Event = Event(**payload_data)
@@ -22,12 +21,12 @@ async def process(handler: EventHandler, data):
     await asyncio.sleep(1)
 
 
-async def test_event(event: Event):
+async def test_event(event: Event) -> str:
     logger.debug('test_event got event %s', event)
     return '#shitcode'
 
 
-async def main():
+async def main() -> None:
     load_dotenv()
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
     redis_connection = RedisConnection(redis_url, name="da_events")

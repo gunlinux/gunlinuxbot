@@ -1,12 +1,16 @@
 import asyncio
-import os
 import json
+import os
+from collections.abc import Callable, Coroutine
 from datetime import datetime
-from typing import Callable, TYPE_CHECKING, Any, Coroutine
+from typing import TYPE_CHECKING, Any
+
 from dotenv import load_dotenv
+
+from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.twitch.twitchbot import TwitchBot
-from gunlinuxbot.myqueue import RedisConnection, Queue
 from gunlinuxbot.utils import logger_setup
+
 if TYPE_CHECKING:
     from twitchio.message import Message
 
@@ -27,7 +31,6 @@ async def init_process(queue: Queue) -> Callable[["Message"], Coroutine[Any, Any
                 "content": message.content,
                 "author": {
                     "name": message.author.name,
-                    #  "channel": str(message.author.channel),
                 },
                 "echo": message.echo,
                 "first": message.first,
