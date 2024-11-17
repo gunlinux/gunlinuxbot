@@ -6,23 +6,24 @@ from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import RedisConnection, Queue
 from gunlinuxbot.sender import Sender
-from gunlinuxbot.handlers import DonatEventHandler, HandlerEvent, Command
+from gunlinuxbot.handlers import DonatEventHandler, Event, Command, EventHandler
 from gunlinuxbot.utils import logger_setup
 
 
 logger = logger_setup('donats_worker')
 
 
-async def process(handler: HandlerEvent, data):
+async def process(handler: EventHandler, data):
     data = json.loads(data)
     payload_data = data.get("data", {})
-    event = HandlerEvent(**payload_data)
+    event: Event = Event(**payload_data)
     logger.debug('process new event %s', event)
     await handler.handle_event(event)
     await asyncio.sleep(1)
 
 
-async def test_event(event: HandlerEvent):
+async def test_event(event: Event):
+    logger.debug('test_event got event %s', event)
     return '#shitcode'
 
 
@@ -35,7 +36,7 @@ async def main():
     queue = Queue(connection=redis_connection)
     sender_queue = Queue(connection=redis_sender_connection)
     sender = Sender(queue=sender_queue)
-    donat_handler = DonatEventHandler(sender=sender, admin="gunlinux")
+    donat_handler: EventHandler = DonatEventHandler(sender=sender, admin="gunlinux")
     Command("#shitcode", donat_handler, real_runner=test_event)
 
     while True:

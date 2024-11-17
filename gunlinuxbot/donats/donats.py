@@ -1,10 +1,10 @@
 import json
 import logging
 import socketio
-from typing import Callable
+from typing import Callable, Coroutine, Any
 
 from dotenv import load_dotenv
-from ..handlers import HandlerEvent
+from ..handlers import Event
 
 
 load_dotenv()
@@ -20,11 +20,11 @@ class DonatApi:
         )
         await self.sio.wait()
 
-    def __init__(self, token, handler: Callable[[HandlerEvent], None]):
+    def __init__(self, token, handler: Callable[[Event], Coroutine[Any, Any, None]]):
         self.sio = socketio.AsyncClient()
 
         self.token = token
-        self.handler: Callable[[HandlerEvent], None] = handler
+        self.handler: Callable[[Event], Coroutine[Any, Any, None]] = handler
 
         @self.sio.on("connect")
         async def on_connect() -> None:
@@ -43,7 +43,7 @@ class DonatApi:
         @self.sio.on("donation")
         async def on_message(data):
             data = json.loads(data)
-            event = HandlerEvent(
+            event: Event = Event(
                 alert_type=data["alert_type"],
                 amount_formatted=data["amount_formatted"],
                 mssg=data["message"],

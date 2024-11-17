@@ -1,18 +1,19 @@
 import logging
+import importlib.util
 import os
 
 
 def logger_setup(name):
     default_format = "[%(asctime)s] %(name)-18s [%(levelname)s] %(message)s"
     log_format = os.getenv("LOG_FORMAT", default_format)
-    try:
+    if importlib.util.find_spec("coloredlogs"):
         from coloredlogs import ColoredFormatter
         log_formatter = ColoredFormatter(log_format)
-    except ImportError:
+    else:
         log_formatter = logging.Formatter(log_format)
 
     logging.basicConfig(
-        level=logging.INFO, format=os.getenv("LOG_FORMAT", default_format)
+        level=int(os.getenv("LOG_LEVEL", logging.INFO)),
     )
     logger = logging.getLogger(name)
     logger.propagate = False
