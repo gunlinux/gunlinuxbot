@@ -14,17 +14,12 @@ dependencies = [
 ]
 
 [dependency-groups]
-lint = [
+dev = [
     "mypy>=1.13.0",
     "ruff>=0.7.4",
     "types-redis>=4.6.0.20241004",
-]
-dev = [
     "pytest>=8.3.3",
 ]
-
-[tool.uv]
-default-groups = ["dev", "lint"]
 
 [tool.ruff.lint]
 # 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
