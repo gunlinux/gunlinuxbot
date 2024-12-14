@@ -42,13 +42,13 @@ async def main() -> None:
     queue = Queue(connection=redis_connection)
 
     while True:
+        handler = await init_process(queue)
+        bot = donats.DonatApi(token=access_token, handler=handler)
         try:
-            handler = await init_process(queue)
-            bot = donats.DonatApi(token=access_token, handler=handler)
             await bot.run()
-        except Exception:
+        except Exception as e:
+            logger.critical('some exception caught %s', e)
             await asyncio.sleep(1)
-            pass
 
 
 if __name__ == "__main__":
