@@ -2,8 +2,24 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 import logging
+import requests
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+
+def send_donate(value, name):
+    url = "http://127.0.0.1:6016/donate"
+    data = {
+        "date": datetime.now().isoformat(),
+        "value": value,
+        "name": name,
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, json=data, headers=headers)
+
 
 
 @dataclass
@@ -96,6 +112,7 @@ class DonatEventHandler(EventHandler):
         print('_donation')
         mssg_text = f"""{self.admin} {event.user} пожертвовал
             {event.amount_formatted} {event.currency} | {event.mssg}"""
+        send_donate(int(event.amount_formatted), event.user)
         await self.chat(mssg_text)
 
     async def _follow(self, event: HandlerEvent):
