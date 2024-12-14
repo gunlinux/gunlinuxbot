@@ -1,23 +1,27 @@
 import asyncio
-import os
-import logging
 import json
+import os
+from collections.abc import Callable, Coroutine
+from dataclasses import asdict
 from datetime import datetime
+from typing import Any
 
 from dotenv import load_dotenv
-import gunlinuxbot.donats.donats as donats
-from gunlinuxbot.myqueue import RedisConnection, Queue
-from gunlinuxbot.handlers import HandlerEvent
-from dataclasses import asdict
+
+from gunlinuxbot.donats import donats
+from gunlinuxbot.handlers import Event
+from gunlinuxbot.myqueue import Queue, RedisConnection
+from gunlinuxbot.utils import logger_setup
+
+logger = logger_setup("donats_getter")
 
 
-logger = logging.getLogger(__name__)
+async def init_process(
+    queue: Queue,
+) -> Callable[[Event], Coroutine[Any, Any, None]]:
+    work_queue: Queue = queue
 
-
-async def init_process(queue):
-    queue = queue
-
-    async def process_mssg(message: HandlerEvent):
+    async def process_mssg(message: Event) -> None:
         if not message:
             return
         payload = {
@@ -25,12 +29,12 @@ async def init_process(queue):
             "timestamp": datetime.timestamp(datetime.now()),
             "data": asdict(message),
         }
-        print(f' new process_mssg da_events {payload}')
-        await queue.push(json.dumps(payload))
+        logger.debug("new process_mssg da_events %s", payload)
+        await work_queue.push(json.dumps(payload))
     return process_mssg
 
 
-async def main():
+async def main() -> None:
     load_dotenv()
     access_token = os.environ.get("DA_ACCESS_TOKEN", "set_Dame_token")
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")

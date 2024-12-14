@@ -1,43 +1,58 @@
-from redis import asyncio as aioredis
-import logging
 from abc import ABC, abstractmethod
-from typing import Any
-from redis.asyncio.client import Redis
+from typing import TYPE_CHECKING
 
+from redis import asyncio as aioredis
 
-logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from redis.asyncio.client import Redis
+from redis.exceptions import ConnectionError, TimeoutError
+
+from .utils import logger_setup
+
+logger = logger_setup('gunlinuxbot.myqueue')
 
 
 class Connection(ABC):
     @abstractmethod
-    async def push(self, data):
+    async def push(self, data: str) -> None:
         pass
 
     @abstractmethod
-    async def pop(self) -> Any:
+    async def pop(self) -> str | None:
         pass
 
 
 class RedisConnection(Connection):
-    def __init__(self, url, name):
+    def __init__(self, url: str, name: str) -> None:
         self.url = url
-        self.name = name
+        self.name: str = name
         self.redis: Redis = aioredis.from_url(self.url)
 
-    async def push(self, data):
-        await self.redis.rpush(self.name, data)
+    async def push(self, data: str) -> None:
+        if self.redis is None:
+            logger.critical('cant push no redis conn')
+            return
+        try:
+            await self.redis.rpush(self.name, data)
+        except (ConnectionError, TimeoutError) as e:
+            logger.critical('cant push no redis conn, %s', e)
 
-    async def pop(self):
-        if self.redis is not None:
+    async def pop(self) -> str | None:
+        if self.redis is None:
+            logger.critical('cant pop no redis conn')
+            return None
+        try:
             return await self.redis.lpop(self.name)
+        except (ConnectionError, TimeoutError) as e:
+            logger.critical('cant pop from redis conn, %s', e)
 
 
 class Queue:
-    def __init__(self, connection: Connection):
+    def __init__(self, connection: Connection) -> None:
         self.connection: Connection = connection
 
-    async def push(self, data):
+    async def push(self, data: str) -> None:
         await self.connection.push(data)
 
-    async def pop(self):
+    async def pop(self) -> str | None:
         return await self.connection.pop()

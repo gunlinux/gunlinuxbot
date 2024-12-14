@@ -1,43 +1,32 @@
 import asyncio
-import os
-import logging
 import json
-import random
+import os
 
 from dotenv import load_dotenv
 
-from gunlinuxbot.myqueue import RedisConnection, Queue
+from gunlinuxbot.handlers import Command, DonatEventHandler, Event, EventHandler
+from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
-from gunlinuxbot.handlers import DonatEventHandler, HandlerEvent, Command
+from gunlinuxbot.utils import logger_setup
+
+logger = logger_setup('donats_worker')
 
 
-logger = logging.getLogger(__name__)
-
-
-async def process(handler: HandlerEvent, data):
+async def process(handler: EventHandler, data: str) -> None:
     data = json.loads(data)
     payload_data = data.get("data", {})
-    event = HandlerEvent(**payload_data)
-    print(f'process new event {event}')
+    event: Event = Event(**payload_data)
+    logger.debug('process new event %s', event)
     await handler.handle_event(event)
-    logger.critical("something happened %s", event)
     await asyncio.sleep(1)
 
 
-async def test_event(event: HandlerEvent):
-    print(f'test_event process {event}')
-    return 'okface'
-    symbols = ["AWOO", "AUF", "gunlinAuf"]
-    symbols_len = random.randint(6, 12)
-    out = []
-    for _ in range(symbols_len):
-        out.append(random.choice(symbols))
-
-    auf_str = " ".join(out)
-    return f"@{event.user} Воистину {auf_str}"
+async def test_event(event: Event) -> str:
+    logger.debug('test_event got event %s', event)
+    return '#shitcode'
 
 
-async def main():
+async def main() -> None:
     load_dotenv()
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
     redis_connection = RedisConnection(redis_url, name="da_events")
@@ -46,7 +35,7 @@ async def main():
     queue = Queue(connection=redis_connection)
     sender_queue = Queue(connection=redis_sender_connection)
     sender = Sender(queue=sender_queue)
-    donat_handler = DonatEventHandler(sender=sender, admin="gunlinux")
+    donat_handler: EventHandler = DonatEventHandler(sender=sender, admin="gunlinux")
     Command("#shitcode", donat_handler, real_runner=test_event)
 
     while True:
