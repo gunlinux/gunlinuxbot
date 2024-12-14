@@ -40,9 +40,15 @@ async def main() -> None:
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
     redis_connection = RedisConnection(redis_url, name="da_events")
     queue = Queue(connection=redis_connection)
-    handler = await init_process(queue)
-    bot = donats.DonatApi(token=access_token, handler=handler)
-    await bot.run()
+
+    while True:
+        try:
+            handler = await init_process(queue)
+            bot = donats.DonatApi(token=access_token, handler=handler)
+            await bot.run()
+        except Exception:
+            await asyncio.sleep(1)
+            pass
 
 
 if __name__ == "__main__":

@@ -3,6 +3,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
+import logging
+import requests
+from datetime import datetime
+
 
 from .utils import logger_setup
 
@@ -16,6 +20,20 @@ class DonationAlertTypes(Enum):
     DONATION = '1'
     CUSTOM_REWARD = '19'
     FOLLOW = '6'
+
+
+def send_donate(value, name):
+    url = "http://127.0.0.1:6016/donate"
+    data = {
+        "date": datetime.now().isoformat(),
+        "value": value,
+        "name": name,
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, json=data, headers=headers)
+
 
 
 @dataclass
@@ -120,6 +138,7 @@ class DonatEventHandler(EventHandler):
         logger.debug('donat.event _donation')
         mssg_text = f"""{self.admin} {event.user} пожертвовал
             {event.amount_formatted} {event.currency} | {event.mssg}"""
+        send_donate(int(event.amount_formatted), event.user)
         await self.chat(mssg_text)
 
     async def _follow(self, event: Event) -> None:
