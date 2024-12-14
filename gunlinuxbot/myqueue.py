@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from redis import asyncio as aioredis
 
@@ -46,6 +46,24 @@ class RedisConnection(Connection):
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant pop from redis conn, %s', e)
 
+    async def llen(self) -> int | None:
+        if self.redis is None:
+            logger.critical('cant llen no redis conn')
+            return None
+        try:
+            return await self.redis.llen(self.name)
+        except (ConnectionError, TimeoutError) as e:
+            logger.critical('cant llen from redis conn, %s', e)
+
+    async def walk(self) -> list[Any] | None:
+        if self.redis is None:
+            logger.critical('cant llen no redis conn')
+            return None
+        try:
+            return await self.redis.lrange(self.name, 0, -1)
+        except (ConnectionError, TimeoutError) as e:
+            logger.critical('cant llen from redis conn, %s', e)
+
 
 class Queue:
     def __init__(self, connection: Connection) -> None:
@@ -56,3 +74,12 @@ class Queue:
 
     async def pop(self) -> str | None:
         return await self.connection.pop()
+
+    async def llen(self) -> int | None:
+        return await self.connection.llen()
+
+    async def walk(self) -> list[Any] | None:
+        return await self.connection.walk()
+
+    def __str__(self) -> str:
+        return f'<Queue {self.connection.name}>'
