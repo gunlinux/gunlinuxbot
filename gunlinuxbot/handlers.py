@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
-import logging
-import requests
-from datetime import datetime
 
+import aiohttp
 
 from .utils import logger_setup
 
@@ -22,7 +21,7 @@ class DonationAlertTypes(Enum):
     FOLLOW = 6
 
 
-def send_donate(value, name):
+async def send_donate(value: float, name: str) -> dict | None:
     url = "http://127.0.0.1:6016/donate"
     data = {
         "date": datetime.now().isoformat(),
@@ -30,10 +29,12 @@ def send_donate(value, name):
         "name": name,
     }
     headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
-    response = requests.post(url, json=data, headers=headers)
 
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=data, headers=headers, timeout=5) as response:
+            return await response.json()
 
 
 @dataclass
@@ -143,8 +144,8 @@ class DonatEventHandler(EventHandler):
             event.user = 'anonym'
         mssg_text = f"""{self.admin} {event.user} пожертвовал
             {event.amount_formatted} {event.currency} | {event.mssg}"""
-        send_donate(int(event.amount_formatted), event.user)
         logger.critical('_donation %s %s', event.amount_formatted, type(event.amount_formatted))
+        await send_donate(int(event.amount_formatted), event.user)
         await self.chat(mssg_text)
 
     async def _follow(self, event: Event) -> None:
