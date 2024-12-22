@@ -28,7 +28,7 @@ async def process(handler: EventHandler, data: str) -> None:
     return
 
 
-async def auf(event: Event, post=None) -> str:
+async def auf(event: Event, post: Awaitable[str] | None = None) -> str:
     logger.critical('auf')
     symbols = ['AWOO', 'AUF', 'gunlinAuf']
     symbols_len = random.randint(6, 12) #  noqa: S311
@@ -38,7 +38,7 @@ async def auf(event: Event, post=None) -> str:
     logger.critical('%s %s', auf_str, event)
     temp =  f'@{event.user} Воистину {auf_str}'
     logger.critical('auf end %s', temp)
-    
+
     if post:
         return await post(temp)
     return temp

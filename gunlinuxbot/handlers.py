@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -59,7 +59,7 @@ class Command:
         self.event_handler.register(self.name, self)
         self.real_runner = real_runner
 
-    async def run(self, event: Event, post=None) -> None:
+    async def run(self, event: Event, post: Awaitable | None = None) -> None:
         logger.debug('run command %s %s ', self.name, event)
         if self.real_runner is None:
             logger.debug('not implemented yet')
