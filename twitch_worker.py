@@ -2,7 +2,8 @@ import asyncio
 import json
 import os
 import random
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -28,7 +29,7 @@ async def process(handler: EventHandler, data: str) -> None:
     return
 
 
-async def auf(event: Event, post: Awaitable[str] | None = None) -> str:
+async def auf(event: Event, post: Awaitable[Any] | Callable | None = None) -> str:
     logger.critical('auf')
     symbols = ['AWOO', 'AUF', 'gunlinAuf']
     symbols_len = random.randint(6, 12) #  noqa: S311

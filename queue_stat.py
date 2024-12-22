@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import os
 import sys
-from typing import NoReturn
 
 from dotenv import load_dotenv
 
@@ -12,9 +11,9 @@ from gunlinuxbot.utils import logger_setup
 logger = logger_setup(__name__)
 
 
-async def get_queue_stat(queue: str) -> dict:
+async def get_queue_stat(queue_name: str) -> None:
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection = RedisConnection(redis_url, name=queue)
+    redis_connection = RedisConnection(redis_url, name=queue_name)
     queue = Queue(connection=redis_connection)
     logger.info('%s %s', queue, await queue.llen())
     for rec in await queue.walk():
@@ -22,9 +21,9 @@ async def get_queue_stat(queue: str) -> dict:
     await redis_connection.redis.aclose()
 
 
-async def queue_clean(queue: str) -> dict:
+async def queue_clean(queue_name: str) -> None:
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection = RedisConnection(redis_url, name=queue)
+    redis_connection = RedisConnection(redis_url, name=queue_name)
     queue = Queue(connection=redis_connection)
     await queue.clean()
     await redis_connection.redis.aclose()
@@ -42,7 +41,7 @@ async def queues_clear() -> None:
     await asyncio.gather(*[queue_clean(queue) for queue in queues])
 
 
-def main() -> NoReturn:
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Описание твоей программы",
         prog=f"{sys.argv[0]}",
@@ -59,6 +58,7 @@ def main() -> NoReturn:
 
     args = parser.parse_args()
     args.func()
+    return
 
 
 if __name__ == "__main__":

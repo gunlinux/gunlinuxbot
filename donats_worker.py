@@ -13,8 +13,8 @@ logger = logger_setup('donats_worker')
 
 
 async def process(handler: EventHandler, data: str) -> None:
-    data = json.loads(data)
-    payload_data = data.get("data", {})
+    json_data: dict = json.loads(data)
+    payload_data = json_data.get("data", {})
     logger.critical('data %s', payload_data)
     event: Event = Event(**payload_data)
     logger.debug('process new event %s', event)

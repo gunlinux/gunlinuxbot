@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn, Any
 
 import aiohttp
 
@@ -33,7 +33,7 @@ async def send_donate(value: float, name: str) -> dict | None:
     }
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=data, headers=headers, timeout=5) as response:
+        async with session.post(url, json=data, headers=headers) as response:
             return await response.json()
 
 
@@ -59,7 +59,7 @@ class Command:
         self.event_handler.register(self.name, self)
         self.real_runner = real_runner
 
-    async def run(self, event: Event, post: Awaitable | None = None) -> None:
+    async def run(self, event: Event, post: Awaitable[Any] | Callable | None = None) -> None:
         logger.debug('run command %s %s ', self.name, event)
         if self.real_runner is None:
             logger.debug('not implemented yet')
@@ -80,7 +80,7 @@ class EventHandler(ABC):
     async def handle_event(self, event: Event) -> None:
         pass
 
-    def register(self, name: str, command: Callable) -> None:
+    def register(self, name: str, command: Command) -> None:
         logger.debug('successfully registed command %s', name)
         self.commands[name] = command
 
@@ -92,10 +92,10 @@ class EventHandler(ABC):
 
     def is_admin(self, event: Event) -> bool:
         if not event:
-            return None
+            return False
         return event.user != self.admin
 
-    async def run_command(self, event: Event) -> None:
+    async def run_command(self, event: Event) -> NoReturn:
         logger.debug('run_command %s', event)
         for command_name, command in self.commands.items():
             if event.mssg.startswith('$') and not self.is_admin(event):
@@ -105,8 +105,7 @@ class EventHandler(ABC):
 
             if event.mssg.startswith(command_name.lower()):
                 logger.debug('detected command: %s', command)
-                result = await command.run(event, post=self.chat)
-                logger.critical('result = %s', result)
+                await command.run(event, post=self.chat)
 
     async def chat(self, mssg: str) -> None:
         if self.sender is not None:
@@ -127,13 +126,16 @@ class DonatEventHandler(EventHandler):
         logger.critical('alert type %s %s %s', alert_type, type(alert_type), event)
         logger.critical('alert type don %s', DonationAlertTypes.DONATION)
         if alert_type == DonationAlertTypes.DONATION.value:
-            return await self._donation(event)
+            await self._donation(event)
+            return None
 
         if alert_type == DonationAlertTypes.CUSTOM_REWARD.value:
-            return await self._custom_reward(event)
+            await self._custom_reward(event)
+            return None
 
         if alert_type == DonationAlertTypes.FOLLOW.value:
-            return await self._follow(event)
+            await self._follow(event)
+            return None
 
         logger.critical('handle_event not implemented yet %s', event)
         return None
