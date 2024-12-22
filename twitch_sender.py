@@ -13,7 +13,7 @@ logger = logger_setup('twitch_sender')
 
 def process(event: str) -> str | None:
     data = json.loads(event)
-    logger.debug('%s %s', data['event'], data['timestamp'])
+    logger.debug('%s process %s %s', __name__ ,data['event'], data['timestamp'])
     return data.get('data', {}).get('message', None)
 
 

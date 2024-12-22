@@ -28,6 +28,10 @@ class RedisConnection(Connection):
         self.name: str = name
         self.redis: Redis = aioredis.from_url(self.url)
 
+    async def __adel__(self) -> None:
+        if self.redis:
+            await self.redis.close()
+
     async def push(self, data: str) -> None:
         if self.redis is None:
             logger.critical('cant push no redis conn')
@@ -64,6 +68,17 @@ class RedisConnection(Connection):
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant llen from redis conn, %s', e)
 
+    async def clean(self) -> None:
+        if self.redis is None:
+            logger.critical('cant llen no redis conn')
+            return None
+        try:
+            return await self.redis.delete(self.name)
+        except (ConnectionError, TimeoutError) as e:
+            logger.critical('cant llen from redis conn, %s', e)
+
+
+
 
 class Queue:
     def __init__(self, connection: Connection) -> None:
@@ -80,6 +95,9 @@ class Queue:
 
     async def walk(self) -> list[Any] | None:
         return await self.connection.walk()
+
+    async def clean(self) -> None:
+        return await self.connection.clean()
 
     def __str__(self) -> str:
         return f'<Queue {self.connection.name}>'

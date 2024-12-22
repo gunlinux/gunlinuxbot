@@ -13,7 +13,7 @@ def logger_setup(name: str) -> logging.Logger:
         log_formatter = logging.Formatter(log_format)
 
     logging.basicConfig(
-        level=int(os.getenv("LOG_LEVEL", logging.INFO)),
+        level=int(os.getenv("LOG_LEVEL", logging.DEBUG)),
     )
     logger = logging.getLogger(name)
     logger.propagate = False

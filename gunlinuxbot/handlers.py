@@ -16,9 +16,9 @@ logger = logger_setup('gunlinuxbot.handlers')
 
 
 class DonationAlertTypes(Enum):
-    DONATION = '1'
-    CUSTOM_REWARD = '19'
-    FOLLOW = '6'
+    DONATION = 1
+    CUSTOM_REWARD = 19
+    FOLLOW = 6
 
 
 async def send_donate(value: float, name: str) -> dict | None:
@@ -41,6 +41,7 @@ async def send_donate(value: float, name: str) -> dict | None:
 class Event:
     mssg: str
     user: str
+    id: int = 0
     amount_formatted: str = ''
     alert_type: str = ''
     currency: str = ''
@@ -58,12 +59,12 @@ class Command:
         self.event_handler.register(self.name, self)
         self.real_runner = real_runner
 
-    async def run(self, event: Event) -> None:
-        logger.debug('run command %s', self.name)
+    async def run(self, event: Event, post=None) -> None:
+        logger.debug('run command %s %s ', self.name, event)
         if self.real_runner is None:
             logger.debug('not implemented yet')
             return
-        await self.real_runner(event)
+        await self.real_runner(event, post=post)
 
     def __str__(self) -> str:
         return f'<Command> {self.name}'
@@ -102,11 +103,10 @@ class EventHandler(ABC):
                 logger.info('ignoring admin command %s', event.mssg)
                 continue
 
-            if event.mssg.startswith(command_name):
+            if event.mssg.startswith(command_name.lower()):
                 logger.debug('detected command: %s', command)
-                result = await command.run(event)
-                if result:
-                    await self.chat(result)
+                result = await command.run(event, post=self.chat)
+                logger.critical('result = %s', result)
 
     async def chat(self, mssg: str) -> None:
         if self.sender is not None:
@@ -123,13 +123,16 @@ class TwitchEventHandler(EventHandler):
 
 class DonatEventHandler(EventHandler):
     async def handle_event(self, event: Event) -> None:
-        if event.alert_type == DonationAlertTypes.DONATION:
+        alert_type: int = int(event.alert_type)
+        logger.critical('alert type %s %s %s', alert_type, type(alert_type), event)
+        logger.critical('alert type don %s', DonationAlertTypes.DONATION)
+        if alert_type == DonationAlertTypes.DONATION.value:
             return await self._donation(event)
 
-        if event.alert_type == DonationAlertTypes.CUSTOM_REWARD:
+        if alert_type == DonationAlertTypes.CUSTOM_REWARD.value:
             return await self._custom_reward(event)
 
-        if event.alert_type == DonationAlertTypes.FOLLOW:
+        if alert_type == DonationAlertTypes.FOLLOW.value:
             return await self._follow(event)
 
         logger.critical('handle_event not implemented yet %s', event)
@@ -137,6 +140,8 @@ class DonatEventHandler(EventHandler):
 
     async def _donation(self, event: Event) -> None:
         logger.debug('donat.event _donation')
+        if event.user is None:
+            event.user = 'anonym'
         mssg_text = f"""{self.admin} {event.user} пожертвовал
             {event.amount_formatted} {event.currency} | {event.mssg}"""
         logger.critical('_donation %s %s', event.amount_formatted, type(event.amount_formatted))
