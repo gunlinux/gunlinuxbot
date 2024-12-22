@@ -1,6 +1,8 @@
+import argparse
 import asyncio
 import os
 import sys
+from typing import NoReturn
 
 from dotenv import load_dotenv
 
@@ -40,16 +42,24 @@ async def queues_clear() -> None:
     await asyncio.gather(*[queue_clean(queue) for queue in queues])
 
 
-def usage():
-    print(f'{sys.argv[0]} clear')
-    print(f'{sys.argv[0]} stat')
+def main() -> NoReturn:
+    parser = argparse.ArgumentParser(
+        description="Описание твоей программы",
+        prog=f"{sys.argv[0]}",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        usage()
-        sys.exit()
+    # Подкоманда 'clear'
+    clear_parser = subparsers.add_parser("clear", help="Очистить очереди")
+    clear_parser.set_defaults(func=lambda: asyncio.run(queues_clear()))
 
-    if sys.argv[1] == 'stat':
-        asyncio.run(get_queues_stat())
-    elif sys.argv[1] == 'stat':
-        asyncio.run(queues_clear())
+    # Подкоманда 'stat'
+    stat_parser = subparsers.add_parser("stat", help="Получить статистику очередей")
+    stat_parser.set_defaults(func=lambda: asyncio.run(get_queues_stat()))
+
+    args = parser.parse_args()
+    args.func()
+
+
+if __name__ == "__main__":
+    main()
