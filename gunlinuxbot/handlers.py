@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, NoReturn, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
@@ -127,18 +127,18 @@ class DonatEventHandler(EventHandler):
         logger.critical('alert type don %s', DonationAlertTypes.DONATION)
         if alert_type == DonationAlertTypes.DONATION.value:
             await self._donation(event)
-            return None
+            return
 
         if alert_type == DonationAlertTypes.CUSTOM_REWARD.value:
             await self._custom_reward(event)
-            return None
+            return
 
         if alert_type == DonationAlertTypes.FOLLOW.value:
             await self._follow(event)
-            return None
+            return
 
         logger.critical('handle_event not implemented yet %s', event)
-        return None
+        return
 
     async def _donation(self, event: Event) -> None:
         logger.debug('donat.event _donation')

@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from redis import asyncio as aioredis
-import asyncio
-
-from redis.typing import FieldT
 
 if TYPE_CHECKING:
     from redis.asyncio.client import Redis

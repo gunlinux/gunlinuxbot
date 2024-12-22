@@ -58,7 +58,6 @@ def main() -> None:
 
     args = parser.parse_args()
     args.func()
-    return
 
 
 if __name__ == "__main__":
