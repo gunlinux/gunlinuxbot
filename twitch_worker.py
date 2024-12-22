@@ -28,13 +28,20 @@ async def process(handler: EventHandler, data: str) -> None:
     return
 
 
-async def auf(event: Event) -> str:
+async def auf(event: Event, post=None) -> str:
+    logger.critical('auf')
     symbols = ['AWOO', 'AUF', 'gunlinAuf']
     symbols_len = random.randint(6, 12) #  noqa: S311
     out = [random.choice(symbols) for _ in range(symbols_len)] # noqa: S311
 
     auf_str = ' '.join(out)
-    return f'@{event.user} Воистину {auf_str}'
+    logger.critical('%s %s', auf_str, event)
+    temp =  f'@{event.user} Воистину {auf_str}'
+    logger.critical('auf end %s', temp)
+    
+    if post:
+        return await post(temp)
+    return temp
 
 
 async def main() -> Awaitable[None]:
@@ -52,6 +59,7 @@ async def main() -> Awaitable[None]:
     Command('gunlinauf', twitch_handler, real_runner=auf)
     Command('awoo', twitch_handler, real_runner=auf)
     Command('auf', twitch_handler, real_runner=auf)
+    await asyncio.sleep(1)
 
     while True:
         new_event = await queue.pop()

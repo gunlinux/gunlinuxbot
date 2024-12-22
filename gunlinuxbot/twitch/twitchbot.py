@@ -41,7 +41,6 @@ class TwitchBot(commands.Bot):
         # For now we just want to ignore them...
         if message.echo:
             logger.debug('echo ignore')
-            return
 
         if message and message.author and message.author.name and self.handler_function:
             await self.handler_function(message)

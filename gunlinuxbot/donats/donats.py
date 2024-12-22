@@ -45,8 +45,10 @@ class DonatApi:
         @self.sio.on('donation')
         async def on_message(data: str) -> None:
             data = json.loads(data)
+            logger.critical('new event %s', data)
             event: Event = Event(
-                alert_type=data['alert_type'],
+                id=int(data['id']),
+                alert_type=int(data['alert_type']),
                 amount_formatted=data['amount_formatted'],
                 mssg=data['message'],
                 user=data['username'],
