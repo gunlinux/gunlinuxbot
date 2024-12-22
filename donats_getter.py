@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from dotenv import load_dotenv
+from socketio.exceptions import SocketIOError
 
 from gunlinuxbot.donats import donats
 from gunlinuxbot.handlers import Event
@@ -46,8 +47,8 @@ async def main() -> None:
         bot = donats.DonatApi(token=access_token, handler=handler)
         try:
             await bot.run()
-        except Exception as e:
-            logger.critical('some exception caught %s', e)
+        except SocketIOError as e:
+            logger.critical('some exception caught %s', e.__class__)
             await asyncio.sleep(1)
 
 

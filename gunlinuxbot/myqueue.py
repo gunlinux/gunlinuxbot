@@ -13,6 +13,11 @@ logger = logger_setup('gunlinuxbot.myqueue')
 
 
 class Connection(ABC):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
     @abstractmethod
     async def push(self, data: str) -> None:
         pass
@@ -21,11 +26,23 @@ class Connection(ABC):
     async def pop(self) -> str | None:
         pass
 
+    @abstractmethod
+    async def llen(self) -> int | None:
+        pass
+
+    @abstractmethod
+    async def walk(self) -> list[Any]:
+        pass
+
+    @abstractmethod
+    async def clean(self) -> None:
+        pass
+
 
 class RedisConnection(Connection):
     def __init__(self, url: str, name: str) -> None:
         self.url = url
-        self.name: str = name
+        self._name: str = name
         self.redis: Redis = aioredis.from_url(self.url)
 
     async def __adel__(self) -> None:
@@ -37,36 +54,43 @@ class RedisConnection(Connection):
             logger.critical('cant push no redis conn')
             return
         try:
-            await self.redis.rpush(self.name, data)
+            self.redis.rpush(self.name, data)
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant push no redis conn, %s', e)
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     async def pop(self) -> str | None:
         if self.redis is None:
             logger.critical('cant pop no redis conn')
             return None
         try:
-            return await self.redis.lpop(self.name)
+            return str(await self.redis.lpop(self.name, count=1)) # type: ignore[misc]
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant pop from redis conn, %s', e)
+        return None
 
     async def llen(self) -> int | None:
         if self.redis is None:
             logger.critical('cant llen no redis conn')
             return None
         try:
-            return await self.redis.llen(self.name)
+            return await self.redis.llen(self.name) # type: ignore[misc]
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant llen from redis conn, %s', e)
+        return None
 
-    async def walk(self) -> list[Any] | None:
+    async def walk(self) -> list[Any]:
         if self.redis is None:
             logger.critical('cant llen no redis conn')
-            return None
+            return []
         try:
-            return await self.redis.lrange(self.name, 0, -1)
+            return await self.redis.lrange(self.name, 0, -1) # type: ignore[misc]
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant llen from redis conn, %s', e)
+        return []
 
     async def clean(self) -> None:
         if self.redis is None:
@@ -93,7 +117,7 @@ class Queue:
     async def llen(self) -> int | None:
         return await self.connection.llen()
 
-    async def walk(self) -> list[Any] | None:
+    async def walk(self) -> list[Any]:
         return await self.connection.walk()
 
     async def clean(self) -> None:
