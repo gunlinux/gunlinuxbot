@@ -54,7 +54,7 @@ class RedisConnection(Connection):
             logger.critical('cant push no redis conn')
             return
         try:
-            self.redis.rpush(self.name, data)
+            await self.redis.rpush(self.name, data)
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant push no redis conn, %s', e)
 
@@ -67,7 +67,7 @@ class RedisConnection(Connection):
             logger.critical('cant pop no redis conn')
             return None
         try:
-            return str(await self.redis.lpop(self.name, count=1)) # type: ignore[misc]
+            return await self.redis.lpop(self.name) # type: ignore[misc]
         except (ConnectionError, TimeoutError) as e:
             logger.critical('cant pop from redis conn, %s', e)
         return None
