@@ -1,0 +1,60 @@
+version: '3'
+services:
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  donats_getter:
+    build: .
+    command: ["uv", "run",  "donats_getter.py"]
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+
+  donats_worker:
+    build: .
+    command: ["uv", "run",  "donats_worker.py"]
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+
+  twitch_getter:
+    build: .
+    command: ["uv", "run",  "twitch_getter.py"]
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+    ports:
+      - "8002:8002"
+
+  twitch_sender:
+    build: .
+    command: ["uv", "run",  "twitch_sender.py"]
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+
+  twitch_worker:
+    build: .
+    command: ["uv", "run",  "twitch_worker.py"]
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+
