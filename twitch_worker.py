@@ -12,7 +12,6 @@ from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandle
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
-
 logger = logger_setup('twitch_worker')
 
 
@@ -47,10 +46,10 @@ async def auf(event: Event, post: Awaitable[Any] | Callable | None = None, data:
 
 
 async def command_raw_handler(event: Event, post: Awaitable[Any] | Callable | None = None, data: dict[str, str] | None = None) -> str:
-    logger.critical('command handler %s %s', data, event)
+    logger.critical('RAW command handler %s %s', data, event)
 
     if post:
-        return await post('')
+        return await post(data['text'])
     return ''
 
 
@@ -68,7 +67,7 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
             data['text'] = file.read_text()
 
             print('registred command %s ', data)
-            Command(data['name'], twitch_handler, real_runner=command_raw_handler, data=data)
+            Command(f"!{data['name']}", twitch_handler, real_runner=command_raw_handler, data=data)
 
 
 async def main() -> Awaitable[None]:
