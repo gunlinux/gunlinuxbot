@@ -5,7 +5,7 @@ from redis import asyncio as aioredis
 
 if TYPE_CHECKING:
     from redis.asyncio.client import Redis
-from redis.exceptions import ConnectionError, TimeoutError
+from redis.exceptions import ConnectionError, TimeoutError  # noqa: A004
 
 from .utils import logger_setup
 
@@ -106,6 +106,7 @@ class RedisConnection(Connection):
 
 class Queue:
     def __init__(self, connection: Connection) -> None:
+        self.last_id: str | None = None
         self.connection: Connection = connection
 
     async def push(self, data: str) -> None:

@@ -13,6 +13,8 @@ logger = logger_setup('donats_worker')
 
 
 async def process(handler: EventHandler, data: str) -> None:
+    if not data or data == 'None':
+        return
     json_data: dict = json.loads(data)
     payload_data = json_data.get("data", {})
     logger.critical('data %s', payload_data)
