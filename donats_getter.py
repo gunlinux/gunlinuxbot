@@ -25,10 +25,18 @@ async def init_process(
     async def process_mssg(message: Event) -> None:
         if not message:
             return
+        message_dict = asdict(message)
+        message_id = message_dict.get('id', None)
+        if queue.last_id and queue.last_id == message_id:
+            # doesnt repeat itself
+            await asyncio.sleep(0.1)
+            return
+        queue.last_id = message_id
+        message_dict.get('id', None)
         payload = {
             "event": "da_message",
             "timestamp": datetime.timestamp(datetime.now()),
-            "data": asdict(message),
+            "data": message_dict,
         }
         logger.debug("new process_mssg da_events %s", payload)
         await work_queue.push(json.dumps(payload))

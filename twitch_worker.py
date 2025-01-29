@@ -57,7 +57,7 @@ async def main() -> Awaitable[None]:
     twitch_handler = TwitchEventHandler(sender=sender, admin='gunlinux')
 
     Command('ауф', twitch_handler, real_runner=auf)
-    Command('gunlinauf', twitch_handler, real_runner=auf)
+    Command('gunlinAuf', twitch_handler, real_runner=auf)
     Command('awoo', twitch_handler, real_runner=auf)
     Command('auf', twitch_handler, real_runner=auf)
     await asyncio.sleep(1)
