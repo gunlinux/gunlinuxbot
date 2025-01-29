@@ -52,19 +52,21 @@ class Command:
         self,
         name: str,
         event_handler: 'EventHandler',
+        data: dict[str, str] | None = None,
         real_runner: Callable | None = None,
     ) -> None:
         self.name: str = name
         self.event_handler: EventHandler = event_handler
         self.event_handler.register(self.name, self)
         self.real_runner = real_runner
+        self.data = data
 
     async def run(self, event: Event, post: Awaitable[Any] | Callable | None = None) -> None:
         logger.debug('run command %s %s ', self.name, event)
         if self.real_runner is None:
             logger.debug('not implemented yet')
             return
-        await self.real_runner(event, post=post)
+        await self.real_runner(event, post=post, data=self.data)
 
     def __str__(self) -> str:
         return f'<Command> {self.name}'

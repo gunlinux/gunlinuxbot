@@ -3,6 +3,7 @@ import json
 import os
 import random
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
@@ -29,8 +30,8 @@ async def process(handler: EventHandler, data: str) -> None:
     return
 
 
-async def auf(event: Event, post: Awaitable[Any] | Callable | None = None) -> str:
-    logger.critical('auf')
+async def auf(event: Event, post: Awaitable[Any] | Callable | None = None, data: dict[str, str] | None = None)-> str:
+    logger.critical('auf %s ', data)
     symbols = ['AWOO', 'AUF', 'gunlinAuf']
     symbols_len = random.randint(6, 12) #  noqa: S311
     out = [random.choice(symbols) for _ in range(symbols_len)] # noqa: S311
@@ -43,6 +44,31 @@ async def auf(event: Event, post: Awaitable[Any] | Callable | None = None) -> st
     if post:
         return await post(temp)
     return temp
+
+
+async def command_raw_handler(event: Event, post: Awaitable[Any] | Callable | None = None, data: dict[str, str] | None = None) -> str:
+    logger.critical('command handler %s %s', data, event)
+
+    if post:
+        return await post('')
+    return ''
+
+
+def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) -> None:
+    # Get all files matching the '*.md' pattern
+    command_path = Path.cwd() / command_dir
+    markdown_files = [f for f in command_path.iterdir() if f.is_file() and f.suffix == '.md']
+
+    for file in markdown_files:
+        # Construct the full path to each file
+        # Open the file and read its contents
+        data = {}
+        with Path.open(file, 'r'):
+            data['name'] = Path(file).stem
+            data['text'] = file.read_text()
+
+            print('registred command %s ', data)
+            Command(data['name'], twitch_handler, real_runner=command_raw_handler, data=data)
 
 
 async def main() -> Awaitable[None]:
@@ -60,6 +86,9 @@ async def main() -> Awaitable[None]:
     Command('gunlinAuf', twitch_handler, real_runner=auf)
     Command('awoo', twitch_handler, real_runner=auf)
     Command('auf', twitch_handler, real_runner=auf)
+
+    command_dir = os.environ.get('COMMAND_DIR', './commands/')
+    get_commands_from_dir(command_dir, twitch_handler)
     await asyncio.sleep(1)
 
     while True:
