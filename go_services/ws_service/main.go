@@ -9,11 +9,29 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+  "github.com/redis/go-redis/v9"
+  "github.com/joho/godotenv"
 
 	"ws_service/rqueue"
 )
 
 var ctx = context.Background()
+var redis_cli *redis.Client
+var redis_queue string
+
+
+func init() {
+    // loads values from .env into the system
+    if err := godotenv.Load(); err != nil {
+        log.Print("No .env file found")
+    }
+		redis_queue = os.Getenv("REDIS_QUEUE")
+		if redis_queue == "" {
+			redis_queue = "obs_events"
+		}
+		redis_cli = rqueue.RedisCli()
+}
+
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -49,28 +67,19 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	actions := []string{
-		"{\"action\": \"go.py\", \"args\": [\"loki\", \"15\"]}",
-		"{\"action\": \"test1.py\"}",
-		"{\"action\": \"test2.py\"}",
-		"{\"action\": \"test3.py\"}",
-		"{\"action\": \"test4.py\"}",
-	}
-	once := 0
+
 	log.Println("Client Connected")
 	for {
-		if once < 4 {
-			time.Sleep(1 * time.Second)
-			err = ws.WriteMessage(1, []byte(actions[once]))
-			once += 1
-			if err != nil {
-				log.Println(err)
-				return
-			} else {
-				time.Sleep(1 * time.Second)
-			}
-		} else {
-			once = 0
+		val, err := redis_cli.LPop(ctx, redis_queue).Result()
+		if err != nil {
+			continue
+		}
+
+		time.Sleep(1 * time.Second)
+		err = ws.WriteMessage(1, []byte(val))
+		if err == nil {
+			log.Println("Client ne ale")
+			return
 		}
 	}
 	log.Println("Killed client cause why not")
@@ -92,14 +101,13 @@ func main() {
 	fmt.Println("hello here general Kenobi")
 	setupRoutes()
 
-	redis_queue := os.Getenv("REDIS_QUEUE")
-	if redis_queue == "" {
-		redis_queue = "obs_events"
+
+
+	host := os.Getenv("WS_SERVICE_HOST")
+	if host == "" {
+		fmt.Println("cant get host from evn")
+		host = "127.0.0.1:8080"
 	}
-	redis_cli := rqueue.RedisCli()
-	val, _ := redis_cli.LPop(ctx, redis_queue).Result()
 
-	fmt.Println("got q", val)
-
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
+	log.Fatal(http.ListenAndServe(host, nil))
 }
