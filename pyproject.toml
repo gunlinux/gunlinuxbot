@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "donationalertsapi>=2.0.2",
+    "marshmallow>=3.26.1",
     "obs-websocket-py>=1.0",
     "python-dotenv>=1.0.1",
     "python-socketio>=5.11.4",
@@ -26,7 +27,7 @@ dev = [
 select = ["ALL"]
 
 # 2. Avoid enforcing line-length violations (`E501`)
-ignore = ["E501", "Q000", "D", "DTZ005", "SIM117"]
+ignore = ["E501", "Q000", "D", "DTZ005", "SIM117", "ANN", "I001"]
 
 # 3. Avoid trying to fix flake8-bugbear (`B`) violations.
 unfixable = ["B"]
