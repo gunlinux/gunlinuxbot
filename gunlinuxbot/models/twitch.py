@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from gunlinuxbot.models.event import Event
 
 
 @dataclass
@@ -11,7 +12,7 @@ class SendMessage:
 
 
 @dataclass
-class TwitchMessage:
+class TwitchMessage(Event):
     """
     Модель входящего сообщения
     """

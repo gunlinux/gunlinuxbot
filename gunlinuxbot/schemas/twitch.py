@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from marshmallow import Schema, fields, post_load, pre_load
 
-if TYPE_CHECKING:
-    from twitchio.message import Message
+from twitchio.message import Message
 from gunlinuxbot.models.twitch import SendMessage, TwitchMessage
 
 
@@ -31,8 +30,10 @@ class TwitchMessageSchema(Schema):
         return TwitchMessage(**data)
 
     @pre_load
-    def load_from_message(self, data: 'Message', **kwargs) -> dict:
+    def load_from_message(self, data: Message | dict, **kwargs) -> dict:
         _ = kwargs
+        if isinstance(data, dict):
+            return data
         return {
             'timestamp': str(data.timestamp),
             'content': data.content,
