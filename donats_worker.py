@@ -32,11 +32,10 @@ async def test_event(event: Event) -> str:
 async def main() -> None:
     load_dotenv()
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
-    redis_connection = RedisConnection(redis_url, name="da_events")
-    redis_sender_connection = RedisConnection(redis_url, name="twitch_out")
+    redis_connection = RedisConnection(redis_url)
 
-    queue = Queue(connection=redis_connection)
-    sender_queue = Queue(connection=redis_sender_connection)
+    queue = Queue(name="da_events", connection=redis_connection)
+    sender_queue = Queue(name="twitch_out", connection=redis_connection)
     sender = Sender(queue=sender_queue)
     donat_handler: EventHandler = DonatEventHandler(sender=sender, admin="gunlinux")
 

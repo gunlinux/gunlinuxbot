@@ -87,12 +87,11 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
 
 async def main() -> Awaitable[None]:
     load_dotenv()
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection = RedisConnection(redis_url, name='twitch_mssgs')
-    redis_sender_connection = RedisConnection(redis_url, name='twitch_out')
+    redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
+    redis_connection: RedisConnection = RedisConnection(redis_url)
+    queue: Queue = Queue(name='twitch_mssgs', connection=redis_connection)
+    sender_queue: Queue = Queue(name='twitch_out', connection=redis_connection)
 
-    queue = Queue(connection=redis_connection)
-    sender_queue = Queue(connection=redis_sender_connection)
     sender = Sender(queue=sender_queue)
     twitch_handler = TwitchEventHandler(sender=sender, admin='gunlinux')
 
