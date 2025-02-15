@@ -5,7 +5,7 @@ from redis import asyncio as aioredis
 
 if TYPE_CHECKING:
     from redis.asyncio.client import Redis
-from redis.exceptions import ConnectionError, TimeoutError  # noqa: A004
+from redis.exceptions import ConnectionError, TimeoutError
 
 from .utils import logger_setup
 

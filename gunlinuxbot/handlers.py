@@ -100,12 +100,12 @@ class EventHandler(ABC):
     async def run_command(self, event: Event) -> NoReturn:
         logger.debug('run_command %s', event)
         for command_name, command in self.commands.items():
-            if event.mssg.startswith('$') and not self.is_admin(event):
+            if event.content.startswith('$') and not self.is_admin(event):
                 # ignoring admin syntax
-                logger.info('ignoring admin command %s', event.mssg)
+                logger.info('ignoring admin command %s', event.content)
                 continue
 
-            if event.mssg.startswith(command_name.lower()):
+            if event.content.startswith(command_name.lower()):
                 logger.debug('detected command: %s', command)
                 await command.run(event, post=self.chat)
 
@@ -118,7 +118,7 @@ class EventHandler(ABC):
 
 class TwitchEventHandler(EventHandler):
     async def handle_event(self, event: Event) -> None:
-        logger.debug('starting handle_message %s', event.mssg)
+        logger.debug('starting handle_message %s', event.content)
         await self.run_command(event)
 
 
