@@ -24,11 +24,13 @@ async def init_process(
 
     async def process_mssg(message: Event) -> None:
         if not message:
+            logger.critical('process_mssg no message')
             return
         message_dict = asdict(message)
         message_id = message_dict.get('id', None)
         if queue.last_id and queue.last_id == message_id:
             # doesnt repeat itself
+            logger.critical('dont repeat itself')
             await asyncio.sleep(0.1)
             return
         queue.last_id = message_id
