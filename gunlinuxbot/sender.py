@@ -26,9 +26,9 @@ class Sender:
 
 async def main() -> None:
     load_dotenv()
-    redis_url = os.getenv("REDIS_URL", "redis://localhost/1")
-    redis_connection = RedisConnection(redis_url, name="twitch_out")
-    queue = Queue(connection=redis_connection)
+    redis_url: str = os.getenv("REDIS_URL", "redis://localhost/1")
+    redis_connection: RedisConnection = RedisConnection(redis_url)
+    queue: Queue = Queue(name="twitch_out", connection=redis_connection)
     sender = Sender(queue=queue)
     await sender.send_message("okface привет как ты")
 

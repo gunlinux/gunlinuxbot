@@ -30,10 +30,11 @@ async def sender(bot: TwitchBot, queue: Queue) -> None:
 
 async def main() -> None:
     load_dotenv()
-    access_token = os.environ.get("ACCESS_TOKEN", "set_Dame_token")
-    redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
-    redis_connection = RedisConnection(redis_url, name="twitch_out")
-    queue = Queue(connection=redis_connection)
+    access_token: str = os.environ.get("ACCESS_TOKEN", "set_Dame_token")
+    redis_url: str = os.environ.get("REDIS_URL", "redis://localhost/1")
+    redis_connection: RedisConnection = RedisConnection(redis_url)
+    queue: Queue = Queue(name="twitch_out", connection=redis_connection)
+
     event_loop = asyncio.get_running_loop()
     bot = TwitchBot(access_token=access_token, loop=event_loop)
     await asyncio.gather(sender(bot, queue), bot.start())

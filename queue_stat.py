@@ -12,9 +12,9 @@ logger = logger_setup(__name__)
 
 
 async def get_queue_stat(queue_name: str) -> None:
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection = RedisConnection(redis_url, name=queue_name)
-    queue = Queue(connection=redis_connection)
+    redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
+    redis_connection: RedisConnection = RedisConnection(redis_url, name=queue_name)
+    queue: Queue = Queue(connection=redis_connection)
     logger.info('%s %s', queue, await queue.llen())
     for rec in await queue.walk():
         logger.info(rec)
@@ -22,9 +22,9 @@ async def get_queue_stat(queue_name: str) -> None:
 
 
 async def queue_clean(queue_name: str) -> None:
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection = RedisConnection(redis_url, name=queue_name)
-    queue = Queue(connection=redis_connection)
+    redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
+    redis_connection: RedisConnection = RedisConnection(redis_url)
+    queue: Queue = Queue(name=queue_name, connection=redis_connection)
     await queue.clean()
     await redis_connection.redis.aclose()
 

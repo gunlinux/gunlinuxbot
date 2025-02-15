@@ -47,8 +47,8 @@ async def main() -> None:
     load_dotenv()
     access_token = os.environ.get("DA_ACCESS_TOKEN", "set_Dame_token")
     redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
-    redis_connection = RedisConnection(redis_url, name="da_events")
-    queue = Queue(connection=redis_connection)
+    redis_connection = RedisConnection(redis_url)
+    queue = Queue(name="da_events", connection=redis_connection)
 
     while True:
         handler = await init_process(queue)
