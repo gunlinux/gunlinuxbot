@@ -7,6 +7,7 @@ import socketio
 from dotenv import load_dotenv
 
 from gunlinuxbot.handlers import Event
+from gunlinuxbot.schemas.donats import AlertEventSchema
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -40,21 +41,15 @@ class DonatApi:
 
         @self.sio.on('*')
         async def catch_all(event: Event, data: str) -> None:
-            logger.debug('catch_all %s %s', event, len(data))
+            logger.critical('catch_all %s %s', event, len(data))
 
         @self.sio.on('donation')
         async def on_message(data: str) -> None:
             data = json.loads(data)
             logger.critical('new event %s', data)
-            event: Event = Event(
-                id=int(data['id']),
-                alert_type=int(data['alert_type']),
-                amount_formatted=data['amount_formatted'],
-                mssg=data['message'],
-                user=data['username'],
-                currency=data['currency'],
-            )
+            event: Event = AlertEventSchema().load(data)
             logger.debug('donat on_message %s', event)
             if self.handler is not None:
-                await self.handler(event)
+                return await self.handler(event)
             logger.critical('no handler wtf')
+            return None

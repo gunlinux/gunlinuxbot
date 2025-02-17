@@ -1,16 +1,15 @@
 import asyncio
-import json
 import os
 from collections.abc import Callable, Coroutine
-from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.twitch.twitchbot import TwitchBot
-from gunlinuxbot.utils import logger_setup
+from gunlinuxbot.utils import logger_setup, dump_json
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
+from gunlinuxbot.schemas.queue import QueueMessageSchema
 
 if TYPE_CHECKING:
     from twitchio.message import Message
@@ -26,11 +25,13 @@ async def init_process(queue: Queue) -> Callable[["Message"], Coroutine[Any, Any
         if not message:
             return
         twitch_message = TwitchMessageSchema().load(data=message)
-        payload = {
-            "event": "twitch_message",
-            "data": asdict(twitch_message),
-        }
-        await process_queue.push(json.dumps(payload))
+        payload = QueueMessageSchema().load(
+            {
+                "event": "twitch_message",
+                "data": dump_json(twitch_message),
+            },
+        )
+        await process_queue.push(payload)
     return process_mssg
 
 

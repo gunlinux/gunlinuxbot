@@ -6,15 +6,17 @@ from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.twitch.twitchbot import TwitchBot
+from gunlinuxbot.schemas.queue import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup('twitch_sender')
 
 
 def process(event: str) -> str | None:
-    data = json.loads(event)
-    logger.debug('%s process %s %s', __name__ ,data['event'], data['timestamp'])
-    return data.get('data', {}).get('message', None)
+    data_dict = json.loads(event)
+    data = QueueMessageSchema().load(data_dict)
+    logger.debug('%s process %s %s', __name__ ,data.event, data.timestamp)
+    return data.data
 
 
 async def sender(bot: TwitchBot, queue: Queue) -> None:

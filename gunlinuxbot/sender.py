@@ -1,12 +1,11 @@
 import asyncio
-import json
 import os
-from datetime import datetime
 
 from dotenv import load_dotenv
 
 from .myqueue import Queue, RedisConnection
 from .utils import logger_setup
+from gunlinuxbot.schemas.queue import QueueMessageSchema
 
 logger = logger_setup('gunlinuxbot.sender')
 
@@ -16,12 +15,11 @@ class Sender:
         self.queue = queue
 
     async def send_message(self, message: str) -> None:
-        event = {
+        message = QueueMessageSchema().load({
             "event": "mssg",
-            "timestamp": datetime.now().timestamp(),
-            "data": {"message": message},
-        }
-        await self.queue.push(json.dumps(event))
+            "data": message,
+        })
+        await self.queue.push(message)
 
 
 async def main() -> None:
