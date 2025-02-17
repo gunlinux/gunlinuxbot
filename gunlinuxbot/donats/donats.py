@@ -50,5 +50,6 @@ class DonatApi:
             event: Event = AlertEventSchema().load(data)
             logger.debug('donat on_message %s', event)
             if self.handler is not None:
-                await self.handler(event)
+                return await self.handler(event)
             logger.critical('no handler wtf')
+            return None

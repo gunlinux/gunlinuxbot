@@ -9,10 +9,12 @@ from typing import TYPE_CHECKING, Any
 from dotenv import load_dotenv
 
 from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
+from gunlinuxbot.models import queue
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
+from gunlinuxbot.schemas.queue import QueueMessageSchema
 
 if TYPE_CHECKING:
     from gunlinuxbot.models.twitch import TwitchMessage
@@ -22,8 +24,10 @@ logger = logger_setup('twitch_worker')
 
 async def process(handler: EventHandler, data: str) -> None:
     process_data: dict = json.loads(data)
-    payload_data = process_data.get('data', {})
-    twitch_event: TwitchMessage = TwitchMessageSchema().load(payload_data)
+    queue_message = QueueMessageSchema().load(process_data)
+    twitch_event: TwitchMessage = TwitchMessageSchema().load(
+        json.loads(queue_message.data)
+    )
     await handler.handle_event(twitch_event)
     logger.critical('something happened %s', twitch_event)
     await asyncio.sleep(1)
@@ -41,7 +45,7 @@ async def auf(
 
     auf_str = ' '.join(out)
     logger.critical('%s %s', auf_str, event)
-    temp = f'@{event.user} Воистину {auf_str}'
+    temp = f'@{event.author} Воистину {auf_str}'
     logger.critical('auf end %s', temp)
 
     if post:

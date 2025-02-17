@@ -9,8 +9,9 @@ from redis.exceptions import (
         ConnectionError as RedisConnectionError,
         TimeoutError as RedisTimeoutError,
 )
+from gunlinuxbot.models.queue import QueueMessage
 
-from .utils import logger_setup
+from .utils import logger_setup, dump_json
 
 logger = logger_setup('gunlinuxbot.myqueue')
 
@@ -47,12 +48,12 @@ class RedisConnection(Connection):
         if self._redis:
             await self._redis.close()
 
-    async def push(self, name: str, data: str) -> None:
+    async def push(self, name: str, data: QueueMessage) -> None:
         if self._redis is None:
             logger.critical('cant push no redis conn')
             return
         try:
-            await self._redis.rpush(name, data)
+            await self._redis.rpush(name, dump_json(data))
         except (RedisConnectionError, RedisTimeoutError) as e:
             logger.critical('cant push no redis conn, %s', e)
 

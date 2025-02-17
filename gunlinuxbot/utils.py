@@ -1,5 +1,20 @@
+from dataclasses import dataclass, asdict
 import logging
+import json
 import os
+import datetime
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, obj)
+
+
+def dump_json(data: dataclass) -> str:
+    return json.dumps(asdict(data), cls=DateTimeEncoder)
 
 
 def logger_setup(name: str) -> logging.Logger:
