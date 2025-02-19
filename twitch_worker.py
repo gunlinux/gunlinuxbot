@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 from dotenv import load_dotenv
 
 from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
-from gunlinuxbot.models import queue
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
@@ -26,7 +25,7 @@ async def process(handler: EventHandler, data: str) -> None:
     process_data: dict = json.loads(data)
     queue_message = QueueMessageSchema().load(process_data)
     twitch_event: TwitchMessage = TwitchMessageSchema().load(
-        json.loads(queue_message.data)
+        json.loads(queue_message.data),
     )
     await handler.handle_event(twitch_event)
     logger.critical('something happened %s', twitch_event)

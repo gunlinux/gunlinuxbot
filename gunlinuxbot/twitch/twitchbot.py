@@ -26,6 +26,17 @@ class TwitchBot(commands.Bot):
             loop=loop,
         )
 
+
+class TwitchBotSender(TwitchBot):
+    async def send_message(self, message: Message) -> None:
+        if not self.connected_channels:
+            logger.warning('no connected channels')
+            return
+        for channel in self.connected_channels:
+            await channel.send(message)
+
+
+class TwitchBotGetter(TwitchBot):
     async def event_ready(self) -> None:
         # Notify us when everything is ready!
         # We are logged in and ready to chat and use commands...
@@ -44,10 +55,3 @@ class TwitchBot(commands.Bot):
 
         if message and message.author and message.author.name and self.handler_function:
             await self.handler_function(message)
-
-    async def send_message(self, message: Message) -> None:
-        if not self.connected_channels:
-            logger.warning('no connected channels')
-            return
-        for channel in self.connected_channels:
-            await channel.send(message)

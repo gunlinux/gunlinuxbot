@@ -1,12 +1,13 @@
 import asyncio
 import os
+import logging
 from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
-from gunlinuxbot.twitch.twitchbot import TwitchBot
+from gunlinuxbot.twitch.twitchbot import TwitchBotGetter
 from gunlinuxbot.utils import logger_setup, dump_json
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
 from gunlinuxbot.schemas.queue import QueueMessageSchema
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
 
 
 logger = logger_setup('twitch_sender')
+twitchio_logger = logging.getLogger('twitchio')
+twitchio_logger.setLevel(logging.INFO)
 
 
 async def init_process(queue: Queue) -> Callable[["Message"], Coroutine[Any, Any, None]]:
@@ -44,7 +47,7 @@ async def main() -> None:
 
     event_loop = asyncio.get_running_loop()
     handler = await init_process(queue)
-    bot = TwitchBot(access_token=access_token, loop=event_loop, handler=handler)
+    bot = TwitchBotGetter(access_token=access_token, loop=event_loop, handler=handler)
     await bot.start()
 
 

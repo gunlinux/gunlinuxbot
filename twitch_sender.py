@@ -1,16 +1,18 @@
 import asyncio
 import json
 import os
+import logging
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
-from gunlinuxbot.twitch.twitchbot import TwitchBot
+from gunlinuxbot.twitch.twitchbot import TwitchBotSender
 from gunlinuxbot.schemas.queue import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup('twitch_sender')
-
+twitchio_logger = logging.getLogger('twitchio')
+twitchio_logger.setLevel(logging.INFO)
 
 def process(event: str) -> str | None:
     data_dict = json.loads(event)
@@ -19,7 +21,7 @@ def process(event: str) -> str | None:
     return data.data
 
 
-async def sender(bot: TwitchBot, queue: Queue) -> None:
+async def sender(bot: TwitchBotSender, queue: Queue) -> None:
     logger.debug("sender start")
     while True:
         new_event = await queue.pop()
@@ -38,7 +40,7 @@ async def main() -> None:
     queue: Queue = Queue(name="twitch_out", connection=redis_connection)
 
     event_loop = asyncio.get_running_loop()
-    bot = TwitchBot(access_token=access_token, loop=event_loop)
+    bot = TwitchBotSender(access_token=access_token, loop=event_loop)
     await asyncio.gather(sender(bot, queue), bot.start())
 
 
