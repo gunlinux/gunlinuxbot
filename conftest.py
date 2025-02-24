@@ -1,6 +1,8 @@
 import pytest
-from unittest.mock import MagicMock, patch
+import asyncio
+from unittest.mock import MagicMock, patch, AsyncMock
 from gunlinuxbot.myqueue import Connection
+from gunlinuxbot.twitch.twitchbot import TwitchBot
 
 
 # Define the mock class
@@ -33,3 +35,16 @@ class MockRedis(Connection):
 def mock_redis():
     redis = MockRedis()
     return redis
+
+
+@pytest.fixture
+def mock_twitch_external():
+    async def mock_run(*args, **kwargs):
+        for m in range(30):
+            await asyncio.sleep(0.01)
+
+    def dummy(args, **kwargs):
+        return
+
+    TwitchBot.start = mock_run
+    return TwitchBot

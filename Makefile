@@ -10,6 +10,10 @@ install:
 test:  ## Run tests
 	uv run pytest
 
+.PHONY: test-dev
+test:  ## Run tests
+	uv run pytest -vv  -s
+
 .PHONY: lint
 lint:  ## Run linters
 	uv run ruff check
