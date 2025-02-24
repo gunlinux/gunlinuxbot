@@ -1,5 +1,4 @@
 import json
-import pytest
 from datetime import datetime
 from gunlinuxbot.myqueue import Queue
 
