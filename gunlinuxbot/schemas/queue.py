@@ -9,11 +9,9 @@ class QueueMessageSchema(Schema):
     event = fields.Str(required=True)
     timestamp = fields.DateTime(required=False, missing=datetime.datetime.now())
     data = fields.Str(required=True)
-    source = fields.Str(Required=False)
+    source = fields.Str(required=False)
 
     @post_load
     def make(self, data, **kwargs: dict[Any, Any]) -> QueueMessage:
         _ = kwargs
         return QueueMessage(**data)
-
-

@@ -11,13 +11,15 @@ logger = logger_setup('gunlinuxbot.sender')
 
 
 class Sender:
-    def __init__(self, queue: Queue) -> None:
+    def __init__(self, queue: Queue, source: str = '') -> None:
         self.queue = queue
+        self.source = source
 
     async def send_message(self, message: str) -> None:
         message = QueueMessageSchema().load({
             "event": "mssg",
             "data": message,
+            "source": self.source,
         })
         await self.queue.push(message)
 
