@@ -13,7 +13,7 @@ from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
-from gunlinuxbot.schemas.queue import QueueMessageSchema
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 
 if TYPE_CHECKING:
     from gunlinuxbot.models.twitch import TwitchMessage
@@ -81,7 +81,7 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
 
             logger.info('registred command %s ', data)
             Command(
-                f"!{data['name']}",
+                f'!{data["name"]}',
                 twitch_handler,
                 real_runner=command_raw_handler,
                 data=data,
@@ -93,10 +93,10 @@ async def main() -> Awaitable[None]:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
     queue: Queue = Queue(name='twitch_mssgs', connection=redis_connection)
-    sender_queue: Queue = Queue(name='twitch_out', connection=redis_connection)
-
-    sender = Sender(queue=sender_queue)
-    twitch_handler = TwitchEventHandler(sender=sender, admin='gunlinux')
+    sender = Sender(queue_name='twitch_out', connection=redis_connection)
+    twitch_handler = TwitchEventHandler(
+        sender=sender, admin='gunlinux', connection=redis_connection,
+    )
 
     Command('ауф', twitch_handler, real_runner=auf)
     Command('gunlinAuf', twitch_handler, real_runner=auf)

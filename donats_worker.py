@@ -16,7 +16,7 @@ async def process(handler: EventHandler, data: str) -> None:
     if not data or data == 'None':
         return
     json_data: dict = json.loads(data)
-    payload_data = json_data.get("data", {})
+    payload_data = json_data.get('data', {})
     logger.critical('data %s', payload_data)
     event: Event = Event(**payload_data)
     logger.debug('process new event %s', event)
@@ -31,13 +31,16 @@ async def test_event(event: Event) -> str:
 
 async def main() -> None:
     load_dotenv()
-    redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
+    redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection = RedisConnection(redis_url)
 
-    queue = Queue(name="da_events", connection=redis_connection)
-    sender_queue = Queue(name="twitch_out", connection=redis_connection)
-    sender = Sender(queue=sender_queue)
-    donat_handler: EventHandler = DonatEventHandler(sender=sender, admin="gunlinux")
+    queue = Queue(name='da_events', connection=redis_connection)
+    sender = Sender(queue_name='twitch_out', connection=redis_connection)
+    donat_handler: EventHandler = DonatEventHandler(
+        sender=sender,
+        admin='gunlinux',
+        connection=redis_connection,
+    )
 
     while True:
         new_event = await queue.pop()
@@ -46,5 +49,5 @@ async def main() -> None:
         await asyncio.sleep(1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())

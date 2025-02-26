@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NoReturn
+from gunlinuxbot.myqueue import Connection
 
 import aiohttp
 
@@ -73,10 +74,11 @@ class Command:
 
 
 class EventHandler(ABC):
-    def __init__(self, sender: 'Sender', admin: str | None) -> None:
+    def __init__(self, sender: 'Sender', admin: str | None, connection: Connection| None = None) -> None:
         self.commands: dict[str, Command] = {}
         self.sender = sender
         self.admin = admin
+        self.connection = connection
 
     @abstractmethod
     async def handle_event(self, event: Event) -> None:

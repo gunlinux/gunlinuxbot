@@ -2,7 +2,7 @@ from marshmallow import Schema, fields, post_load
 from typing import Any
 import datetime
 
-from gunlinuxbot.models.queue import QueueMessage
+from gunlinuxbot.models.myqueue import QueueMessage
 
 
 class QueueMessageSchema(Schema):

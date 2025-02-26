@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.twitch.twitchbot import TwitchBotSender
-from gunlinuxbot.schemas.queue import QueueMessageSchema
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup('twitch_sender')

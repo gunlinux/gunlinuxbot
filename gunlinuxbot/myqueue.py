@@ -9,7 +9,7 @@ from redis.exceptions import (
         ConnectionError as RedisConnectionError,
         TimeoutError as RedisTimeoutError,
 )
-from gunlinuxbot.models.queue import QueueMessage
+from gunlinuxbot.models.myqueue import QueueMessage
 
 from .utils import logger_setup, dump_json
 
