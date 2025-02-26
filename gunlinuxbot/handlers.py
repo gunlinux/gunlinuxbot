@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
+import json
 from typing import TYPE_CHECKING, Any, NoReturn
 from gunlinuxbot.myqueue import Connection
+from gunlinuxbot.models.donats import AlertEvent
 
-import aiohttp
 
 from .utils import logger_setup
 
@@ -22,6 +21,7 @@ class DonationAlertTypes(Enum):
     FOLLOW = 6
 
 
+"""
 async def send_donate(value: float, name: str) -> dict | None:
     url = "http://127.0.0.1:6016/donate"
     data = {
@@ -32,13 +32,11 @@ async def send_donate(value: float, name: str) -> dict | None:
     headers = {
         "Content-Type": "application/json",
     }
-
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=data, headers=headers) as response:
             return await response.json()
+"""
 
-
-@dataclass
 class Event:
     mssg: str
     user: str
@@ -76,7 +74,7 @@ class Command:
 class EventHandler(ABC):
     def __init__(self, sender: 'Sender', admin: str | None, connection: Connection| None = None) -> None:
         self.commands: dict[str, Command] = {}
-        self.sender = sender
+        self.sender: Sender = sender
         self.admin = admin
         self.connection = connection
 
@@ -125,7 +123,14 @@ class TwitchEventHandler(EventHandler):
 
 
 class DonatEventHandler(EventHandler):
-    async def handle_event(self, event: Event) -> None:
+    async def send_donate(self, event: Event):
+        message = {
+            "value": int(event.amount_formatted),
+            "name": event.username,
+        }
+        await self.sender.send_message(message=json.dumps(message), source='donat_handler', queue_name='bs_donats')
+
+    async def handle_event(self, event: AlertEvent) -> None:
         alert_type: int = int(event.alert_type)
         logger.critical('alert type %s %s %s', alert_type, type(alert_type), event)
         logger.critical('alert type don %s', DonationAlertTypes.DONATION)
@@ -144,21 +149,21 @@ class DonatEventHandler(EventHandler):
         logger.critical('handle_event not implemented yet %s', event)
         return
 
-    async def _donation(self, event: Event) -> None:
+    async def _donation(self, event: AlertEvent) -> None:
         logger.debug('donat.event _donation')
-        if event.user is None:
-            event.user = 'anonym'
-        mssg_text = f"""{self.admin} {event.user} пожертвовал
-            {event.amount_formatted} {event.currency} | {event.mssg}"""
+        if event.username is None:
+            event.username = 'anonym'
+        mssg_text = f"""{self.admin} {event.username} пожертвовал
+            {event.amount_formatted} {event.currency} | {event.message}"""
         logger.critical('_donation %s %s', event.amount_formatted, type(event.amount_formatted))
-        await send_donate(int(event.amount_formatted), event.user)
+        await self.send_donate(event)
         await self.chat(mssg_text)
 
-    async def _follow(self, event: Event) -> None:
+    async def _follow(self, event: AlertEvent) -> None:
         logger.debug('donat.event _follow')
-        mssg_text = f'@gunlinux @{event.user} started follow auf'
+        mssg_text = f'@gunlinux @{event.username} started follow auf'
         await self.chat(mssg_text)
 
-    async def _custom_reward(self, event: Event) -> None:
+    async def _custom_reward(self, event: AlertEvent) -> None:
         logger.debug('donat.event _custom_reward %s', event)
         await self.run_command(event)

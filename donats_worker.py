@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 
 from gunlinuxbot.handlers import DonatEventHandler, Event, EventHandler
+from gunlinuxbot.schemas.donats import AlertEventSchema
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
@@ -18,7 +19,7 @@ async def process(handler: EventHandler, data: str) -> None:
     json_data: dict = json.loads(data)
     payload_data = json_data.get('data', {})
     logger.critical('data %s', payload_data)
-    event: Event = Event(**payload_data)
+    event = AlertEventSchema().load(payload_data)
     logger.debug('process new event %s', event)
     await handler.handle_event(event)
     await asyncio.sleep(1)

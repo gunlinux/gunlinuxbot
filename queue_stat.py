@@ -28,7 +28,7 @@ async def get_queues_stat() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues = ['da_events', 'twitch_mssgs', 'twitch_out']
+    queues = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
     await asyncio.gather(
         *[get_queue_stat(queue, connection=redis_connection) for queue in queues],
     )
@@ -39,7 +39,7 @@ async def queues_clear() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues = ['da_events', 'twitch_mssgs', 'twitch_out']
+    queues = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
     await asyncio.gather(
         *[queue_clean(queue, connection=redis_connection) for queue in queues],
     )

@@ -1,8 +1,9 @@
-from dataclasses import dataclass, asdict
-import logging
-import json
-import os
 import datetime
+import json
+import logging
+import os
+import typing
+from dataclasses import asdict
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -13,7 +14,13 @@ class DateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def dump_json(data: dataclass) -> str:
+def dump_json(data: typing.Any) -> str:
+    if isinstance(data, bytes):
+        return data
+    if isinstance(data, str):
+        return data
+    if isinstance(data, dict):
+        return json.dumps(data)
     return json.dumps(asdict(data), cls=DateTimeEncoder)
 
 

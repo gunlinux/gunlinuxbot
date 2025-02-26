@@ -5,6 +5,7 @@ from typing import Any
 
 import socketio
 from dotenv import load_dotenv
+from marshmallow.exceptions import ValidationError
 
 from gunlinuxbot.handlers import Event
 from gunlinuxbot.schemas.donats import AlertEventSchema
@@ -47,8 +48,11 @@ class DonatApi:
         async def on_message(data: str) -> None:
             data = json.loads(data)
             logger.critical('new event %s', data)
-            event: Event = AlertEventSchema().load(data)
-            logger.debug('donat on_message %s', event)
+            try:
+                event: Event = AlertEventSchema().load(data)
+            except ValidationError:
+                logger.debug('ghost message, cause donation alerts hates me %s', data)
+                return None
             if self.handler is not None:
                 return await self.handler(event)
             logger.critical('no handler wtf')
