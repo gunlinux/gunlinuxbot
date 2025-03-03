@@ -1,6 +1,10 @@
-import pytest
 import asyncio
-from gunlinuxbot.myqueue import Connection
+import json
+from pathlib import Path
+
+import pytest
+
+from gunlinuxbot.myqueue import Connection, Queue
 from gunlinuxbot.twitch.twitchbot import TwitchBot
 
 
@@ -47,3 +51,19 @@ def mock_twitch_external():
 
     TwitchBot.start = mock_run
     return TwitchBot
+
+
+def load_test_queue(name: str):
+    @pytest.fixture
+    async def load_test_queue_from_data(mock_redis):
+        queue = Queue(name=name, connection=mock_redis)
+        with Path.open(f'tests/data/{name}.json', 'r', encoding='utf-8') as test_data:
+            data = json.load(test_data)
+        for item in data:
+            await queue.push(json.dumps(item))
+        return queue
+
+    return load_test_queue_from_data
+
+
+load_da_events = load_test_queue('da_events')

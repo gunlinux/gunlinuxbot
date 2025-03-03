@@ -3,6 +3,7 @@ from gunlinuxbot.schemas.donats import AlertEventSchema
 from gunlinuxbot.myqueue import Queue
 from datetime import datetime
 
+
 async def test_donat_route(mock_redis):
     raw_event = {
         'id': 162020502,
@@ -35,8 +36,7 @@ async def test_donat_route(mock_redis):
         'data': message_dict,
     }
 
-    queue = Queue(name="test_queue", connection=mock_redis)
+    queue = Queue(name='test_queue', connection=mock_redis)
 
     await queue.push(payload)
     assert await queue.pop()
-
