@@ -95,7 +95,8 @@ async def main() -> Awaitable[None]:
     queue: Queue = Queue(name='twitch_mssgs', connection=redis_connection)
     sender = Sender(queue_name='twitch_out', connection=redis_connection)
     twitch_handler = TwitchEventHandler(
-        sender=sender, admin='gunlinux', connection=redis_connection,
+        sender=sender,
+        admin='gunlinux',
     )
 
     Command('ауф', twitch_handler, real_runner=auf)

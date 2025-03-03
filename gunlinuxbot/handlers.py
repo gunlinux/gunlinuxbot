@@ -1,11 +1,11 @@
+import json
+import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from enum import Enum
-import json
 from typing import TYPE_CHECKING, Any, NoReturn
-from gunlinuxbot.myqueue import Connection
-from gunlinuxbot.models.donats import AlertEvent
 
+from gunlinuxbot.models.donats import AlertEvent
 
 from .utils import logger_setup
 
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .sender import Sender
 
 logger = logger_setup('gunlinuxbot.handlers')
+logger.setLevel(logging.DEBUG)
 
 
 class DonationAlertTypes(Enum):
@@ -20,22 +21,6 @@ class DonationAlertTypes(Enum):
     CUSTOM_REWARD = 19
     FOLLOW = 6
 
-
-"""
-async def send_donate(value: float, name: str) -> dict | None:
-    url = "http://127.0.0.1:6016/donate"
-    data = {
-        "date": datetime.now().isoformat(),
-        "value": value,
-        "name": name,
-    }
-    headers = {
-        "Content-Type": "application/json",
-    }
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=data, headers=headers) as response:
-            return await response.json()
-"""
 
 class Event:
     mssg: str
@@ -72,11 +57,10 @@ class Command:
 
 
 class EventHandler(ABC):
-    def __init__(self, sender: 'Sender', admin: str | None, connection: Connection| None = None) -> None:
+    def __init__(self, sender: 'Sender', admin: str | None) -> None:
         self.commands: dict[str, Command] = {}
         self.sender: Sender = sender
         self.admin = admin
-        self.connection = connection
 
     @abstractmethod
     async def handle_event(self, event: Event) -> None:
@@ -85,12 +69,6 @@ class EventHandler(ABC):
     def register(self, name: str, command: Command) -> None:
         logger.debug('successfully registed command %s', name)
         self.commands[name] = command
-
-    """
-    def set_twitch_instance(self, instance) -> None:
-        logger.critical('setting instance')
-        self.twitch_instance = instance
-    """
 
     def is_admin(self, event: Event) -> bool:
         if not event:
@@ -123,7 +101,7 @@ class TwitchEventHandler(EventHandler):
 
 
 class DonatEventHandler(EventHandler):
-    async def send_donate(self, event: Event):
+    async def send_donate(self, event: AlertEvent):
         message = {
             "value": int(event.amount_formatted),
             "name": event.username,

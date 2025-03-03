@@ -40,7 +40,6 @@ async def main() -> None:
     donat_handler: EventHandler = DonatEventHandler(
         sender=sender,
         admin='gunlinux',
-        connection=redis_connection,
     )
 
     while True:

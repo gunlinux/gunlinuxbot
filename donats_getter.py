@@ -5,6 +5,7 @@ from collections.abc import Callable, Coroutine
 from dataclasses import asdict
 from datetime import datetime
 from typing import Any
+from socketio import exceptions as socketio_exceptions
 
 from dotenv import load_dotenv
 
@@ -13,7 +14,7 @@ from gunlinuxbot.handlers import Event
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.utils import logger_setup
 
-logger = logger_setup("donats_getter")
+logger = logger_setup('donats_getter')
 
 
 async def init_process(
@@ -22,6 +23,7 @@ async def init_process(
     work_queue: Queue = queue
 
     async def process_mssg(message: Event) -> None:
+        logger.critical(message)
         if not message:
             logger.critical('process_mssg no message')
             return
@@ -35,25 +37,30 @@ async def init_process(
         queue.last_id = message_id
         message_dict.get('id', None)
         payload = {
-            "event": "da_message",
-            "timestamp": datetime.timestamp(datetime.now()),
-            "data": message_dict,
+            'event': 'da_message',
+            'timestamp': datetime.timestamp(datetime.now()),
+            'data': message_dict,
         }
-        logger.debug("new process_mssg da_events %s", payload)
+        logger.debug('new process_mssg da_events %s', payload)
         await work_queue.push(json.dumps(payload))
+
     return process_mssg
 
 
 async def main() -> None:
     load_dotenv()
-    access_token = os.environ.get("DA_ACCESS_TOKEN", "set_Dame_token")
-    redis_url = os.environ.get("REDIS_URL", "redis://localhost/1")
+    access_token = os.environ.get('DA_ACCESS_TOKEN', 'set_Dame_token')
+    redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection = RedisConnection(redis_url)
-    queue = Queue(name="da_events", connection=redis_connection)
+    queue = Queue(name='da_events', connection=redis_connection)
 
     handler = await init_process(queue)
     bot = DonatApi(token=access_token, handler=handler)
-    await bot.run()
+    try:
+        while True:
+            await bot.run()
+    except socketio_exceptions.ConnectionError:
+        logger.critical('Connection error we are reconnecting')
 
 
 if __name__ == '__main__':
