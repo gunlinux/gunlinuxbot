@@ -44,5 +44,5 @@ async def main() -> None:
     await asyncio.gather(sender(bot, queue), bot.start())
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())

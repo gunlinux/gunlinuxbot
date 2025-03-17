@@ -25,12 +25,12 @@ def dump_json(data: typing.Any) -> str:
 
 
 def logger_setup(name: str) -> logging.Logger:
-    default_format = "[%(asctime)s] %(name)-18s [%(levelname)s] %(message)s"
-    log_format = os.getenv("LOG_FORMAT", default_format)
+    default_format = '[%(asctime)s] %(name)-18s [%(levelname)s] %(message)s'
+    log_format = os.getenv('LOG_FORMAT', default_format)
     log_formatter = logging.Formatter(log_format)
 
     logging.basicConfig(
-        level=int(os.getenv("LOG_LEVEL", logging.DEBUG)),
+        level=int(os.getenv('LOG_LEVEL', logging.DEBUG)),
     )
     logger = logging.getLogger(name)
     logger.propagate = False

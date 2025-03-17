@@ -45,7 +45,9 @@ class Command:
         self.real_runner = real_runner
         self.data = data
 
-    async def run(self, event: Event, post: Awaitable[Any] | Callable | None = None) -> None:
+    async def run(
+        self, event: Event, post: Awaitable[Any] | Callable | None = None
+    ) -> None:
         logger.debug('run command %s %s ', self.name, event)
         if self.real_runner is None:
             logger.debug('not implemented yet')

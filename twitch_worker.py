@@ -79,7 +79,7 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
             data['name'] = Path(file).stem
             data['text'] = file.read_text()
 
-            logger.info('registred command %s ', data)
+            logger.info('registred command from file %s ', data)
             Command(
                 f'!{data["name"]}',
                 twitch_handler,
