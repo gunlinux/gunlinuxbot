@@ -1,6 +1,8 @@
 import asyncio
 import json
 import os
+import signal
+from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -15,6 +17,7 @@ logger = logger_setup('donats_worker')
 
 async def process(handler: EventHandler, data: str) -> None:
     if not data or data == 'None':
+        logger.debug('Received empty data, skipping')
         return
     json_data: dict = json.loads(data)
     payload_data = json_data.get('data', {})
@@ -31,6 +34,7 @@ async def test_event(event: Event) -> str:
 
 
 async def main() -> None:
+    
     load_dotenv()
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection = RedisConnection(redis_url)
@@ -42,11 +46,28 @@ async def main() -> None:
         admin='gunlinux',
     )
 
-    while True:
-        new_event = await queue.pop()
-        if new_event:
-            await process(handler=donat_handler, data=new_event)
-        await asyncio.sleep(1)
+    # Setup graceful shutdown
+    stop_event = asyncio.Event()
+    
+    def signal_handler(sig: int, frame: Optional[object]) -> None:
+        logger.info('Received shutdown signal, stopping gracefully...')
+        stop_event.set()
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    try:
+        while not stop_event.is_set():
+            try:
+                new_event = await queue.pop()
+                if new_event:
+                    await process(handler=donat_handler, data=new_event)
+                await asyncio.sleep(1)
+            except Exception as e:
+                logger.error('Error in main loop: %s', str(e))
+                await asyncio.sleep(1)
+    finally:
+        logger.info('Shutting down...')
 
 
 if __name__ == '__main__':

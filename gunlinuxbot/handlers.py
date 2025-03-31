@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NoReturn
+import os
 
 from gunlinuxbot.models.donats import AlertEvent
 
@@ -48,9 +49,9 @@ class Command:
     async def run(
         self, event: Event, post: Awaitable[Any] | Callable | None = None
     ) -> None:
-        logger.debug('run command %s %s ', self.name, event)
+        logger.debug('Running command %s for event %s', self.name, event)
         if self.real_runner is None:
-            logger.debug('not implemented yet')
+            logger.warning('Command %s not implemented yet', self.name)
             return
         await self.real_runner(event, post=post, data=self.data)
 
@@ -69,16 +70,16 @@ class EventHandler(ABC):
         pass
 
     def register(self, name: str, command: Command) -> None:
-        logger.debug('successfully registed command %s', name)
+        logger.debug('Successfully registered command %s', name)
         self.commands[name] = command
 
     def is_admin(self, event: Event) -> bool:
-        if not event:
+        if not event or not self.admin:
             return False
-        return event.user != self.admin
+        return event.user == self.admin
 
     async def run_command(self, event: Event) -> NoReturn:
-        logger.debug('run_command %s', event)
+        logger.debug('Running command for event %s', event)
         for command_name, command in self.commands.items():
             if event.content.startswith('$') and not self.is_admin(event):
                 # ignoring admin syntax
@@ -93,7 +94,7 @@ class EventHandler(ABC):
         if self.sender is not None:
             await self.sender.send_message(mssg)
         else:
-            logger.critical('cant chat sender')
+            logger.error('Cannot send message: sender is not initialized')
 
 
 class TwitchEventHandler(EventHandler):

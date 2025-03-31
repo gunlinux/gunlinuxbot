@@ -87,7 +87,10 @@ async def main() -> None:
     redis_connection: RedisConnection = RedisConnection(redis_url)
     queue: Queue = Queue(name='twitch_out', connection=redis_connection)
     sender = Sender(queue=queue)
-    await sender.send_message('okface привет как ты')
+    
+    # Test message
+    test_message = os.getenv('TEST_MESSAGE', 'okface привет как ты')
+    await sender.send_message(test_message)
 
 
 if __name__ == '__main__':

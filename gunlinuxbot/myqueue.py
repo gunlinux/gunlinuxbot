@@ -74,8 +74,8 @@ class RedisConnection(Connection):
         try:
             return await self._redis.llen(name)
         except (ConnectionError, TimeoutError) as e:
-            logger.critical('cant llen from redis conn, %s', e)
-        return None
+            logger.error('Failed to get length from Redis: %s', str(e))
+            raise
 
     async def walk(self, name: str) -> list[Any]:
         if self._redis is None:
@@ -84,8 +84,8 @@ class RedisConnection(Connection):
         try:
             return await self._redis.lrange(name, 0, -1)
         except (ConnectionError, TimeoutError) as e:
-            logger.critical('cant llen from redis conn, %s', e)
-        return []
+            logger.error('Failed to walk Redis: %s', str(e))
+            raise
 
     async def clean(self, name: str) -> None:
         if self._redis is None:
