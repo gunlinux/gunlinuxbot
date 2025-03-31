@@ -7,33 +7,33 @@ from dataclasses import asdict
 
 
 class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
+    def default(self, o: object):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
         # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, o)
 
 
 def dump_json(data: typing.Any) -> str:
     if isinstance(data, bytes):
-        return data
+        return str(data)
     if isinstance(data, str):
         return data
-    if isinstance(data, dict):
-        return json.dumps(data)
+    if isinstance(data, typing.Mapping):
+        return json.dumps(typing.Mapping)
     return json.dumps(asdict(data), cls=DateTimeEncoder)
 
 
 def logger_setup(name: str) -> logging.Logger:
     """
-    Настраивает и возвращает логгер с указанным именем.
-    
+    Настраивает и возвращает логгер.
+
     Args:
         name: Имя логгера
-        
+
     Returns:
         Настроенный логгер
-        
+
     Note:
         Уровень логирования и формат можно настроить через переменные окружения:
         - LOG_LEVEL: уровень логирования (по умолчанию DEBUG)
@@ -45,7 +45,13 @@ def logger_setup(name: str) -> logging.Logger:
 
     try:
         log_level = int(os.getenv('LOG_LEVEL', logging.DEBUG))
-        if log_level not in (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL):
+        if log_level not in (
+            logging.DEBUG,
+            logging.INFO,
+            logging.WARNING,
+            logging.ERROR,
+            logging.CRITICAL,
+        ):
             log_level = logging.DEBUG
     except ValueError:
         log_level = logging.DEBUG
@@ -53,12 +59,12 @@ def logger_setup(name: str) -> logging.Logger:
     logging.basicConfig(level=log_level)
     logger = logging.getLogger(name)
     logger.propagate = False
-    
+
     if logger.hasHandlers():
         logger.handlers.clear()
-        
+
     logger_handler = logging.StreamHandler()
     logger_handler.setFormatter(log_formatter)
     logger.addHandler(logger_handler)
-    
+
     return logger

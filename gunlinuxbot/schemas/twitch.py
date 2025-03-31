@@ -25,15 +25,17 @@ class TwitchMessageSchema(Schema):
     timestamp = fields.Str()
 
     @post_load
-    def make(self, data, **kwargs: dict[Any, Any]) -> SendMessage:
+    def make(self, data, **kwargs: dict[Any, Any]) -> TwitchMessage:
         _ = kwargs
         return TwitchMessage(**data)
 
     @pre_load
-    def load_from_message(self, data: Message | dict, **kwargs) -> dict:
+    def load_from_message(self, data: Message | dict | None, **kwargs) -> dict:
         _ = kwargs
         if isinstance(data, dict):
             return data
+        if data is None:
+            return {}
         return {
             'timestamp': str(data.timestamp),
             'content': data.content,

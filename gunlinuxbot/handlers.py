@@ -3,10 +3,11 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from enum import Enum
-from typing import TYPE_CHECKING, Any, NoReturn
-import os
+from typing import TYPE_CHECKING, Any, cast
 
 from gunlinuxbot.models.donats import AlertEvent
+from gunlinuxbot.models.event import Event
+from gunlinuxbot.models.twitch import TwitchMessage
 
 from .utils import logger_setup
 
@@ -21,15 +22,6 @@ class DonationAlertTypes(Enum):
     DONATION = 1
     CUSTOM_REWARD = 19
     FOLLOW = 6
-
-
-class Event:
-    mssg: str
-    user: str
-    id: int = 0
-    amount_formatted: str = ''
-    alert_type: str = ''
-    currency: str = ''
 
 
 class Command:
@@ -73,12 +65,12 @@ class EventHandler(ABC):
         logger.debug('Successfully registered command %s', name)
         self.commands[name] = command
 
-    def is_admin(self, event: Event) -> bool:
+    def is_admin(self, event: TwitchMessage) -> bool:
         if not event or not self.admin:
             return False
-        return event.user == self.admin
+        return event.author == self.admin
 
-    async def run_command(self, event: Event) -> NoReturn:
+    async def run_command(self, event: TwitchMessage) -> None:
         logger.debug('Running command for event %s', event)
         for command_name, command in self.commands.items():
             if event.content.startswith('$') and not self.is_admin(event):
@@ -99,6 +91,7 @@ class EventHandler(ABC):
 
 class TwitchEventHandler(EventHandler):
     async def handle_event(self, event: Event) -> None:
+        event = cast('TwitchMessage', event)
         logger.debug('starting handle_message %s', event.content)
         await self.run_command(event)
 
@@ -106,15 +99,19 @@ class TwitchEventHandler(EventHandler):
 class DonatEventHandler(EventHandler):
     async def send_donate(self, event: AlertEvent):
         message = {
-            "value": int(event.amount_formatted),
-            "name": event.username,
+            'value': int(event.amount_formatted),
+            'name': event.username,
         }
-        await self.sender.send_message(message=json.dumps(message), source='donat_handler', queue_name='bs_donats')
+        await self.sender.send_message(
+            message=json.dumps(message), source='donat_handler', queue_name='bs_donats'
+        )
 
-    async def handle_event(self, event: AlertEvent) -> None:
-        alert_type: int = int(event.alert_type)
+    async def handle_event(self, event: Event) -> None:  # pyright: ignore[reportRedeclaration]
+        event = cast('AlertEvent', event)
+        alert_type: int = int(cast('str', event.alert_type))
         logger.critical('alert type %s %s %s', alert_type, type(alert_type), event)
         logger.critical('alert type don %s', DonationAlertTypes.DONATION)
+        event: AlertEvent = cast('AlertEvent', event)
         if alert_type == DonationAlertTypes.DONATION.value:
             await self._donation(event)
             return
@@ -136,7 +133,9 @@ class DonatEventHandler(EventHandler):
             event.username = 'anonym'
         mssg_text = f"""{self.admin} {event.username} пожертвовал
             {event.amount_formatted} {event.currency} | {event.message}"""
-        logger.critical('_donation %s %s', event.amount_formatted, type(event.amount_formatted))
+        logger.critical(
+            '_donation %s %s', event.amount_formatted, type(event.amount_formatted)
+        )
         await self.send_donate(event)
         await self.chat(mssg_text)
 
@@ -148,3 +147,16 @@ class DonatEventHandler(EventHandler):
     async def _custom_reward(self, event: AlertEvent) -> None:
         logger.debug('donat.event _custom_reward %s', event)
         await self.run_command(event)
+
+    async def run_command(self, event: AlertEvent) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.debug('Running command for event %s', event)
+        # test it
+        for command_name, command in self.commands.items():
+            if event.message.startswith('$'):
+                # ignoring admin syntax
+                logger.info('ignoring admin command %s')
+                continue
+
+            if event.message.startswith(command_name.lower()):
+                logger.debug('detected command: %s', command)
+                await command.run(event, post=self.chat)

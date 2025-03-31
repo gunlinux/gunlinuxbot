@@ -1,24 +1,26 @@
 from dataclasses import dataclass
 
-from enum import StrEnum
+from enum import Enum
+
+from gunlinuxbot.models.event import Event
 
 
-class DonationTypes(StrEnum):
+class DonationTypes(Enum):
     DONATION = '1'
     REWARD = '19'
 
 
-class BillingSystem(StrEnum):
+class BillingSystem(Enum):
     FAKE = 'fake'
     TWITCH = 'TWITCH'
 
 
 @dataclass
-class AlertEvent:
+class AlertEvent(Event):
     id: int
     alert_type: DonationTypes
     billing_system: BillingSystem
-    username: str
+    username: str | None
     amount: float
     amount_formatted: str
     currency: str

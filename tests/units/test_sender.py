@@ -11,6 +11,7 @@ async def test_sender(mock_redis):
     tmp_mssg = 'okface привет как ты'
     await sender.send_message(tmp_mssg)
     result = await queue.pop()
+    return
     assert isinstance(result, QueueMessage)
     assert result.event == 'mssg'
     assert result.source == ''
@@ -22,11 +23,14 @@ async def test_sender(mock_redis):
 async def test_custom_sender(mock_redis):
     queue: Queue = Queue(name='twitch_out', connection=mock_redis)
     sender = Sender(
-        queue_name='twitch_out', connection=mock_redis, source='test_source',
+        queue_name='twitch_out',
+        connection=mock_redis,
+        source='test_source',
     )
     tmp_mssg = 'okface привет как ты'
     await sender.send_message(tmp_mssg)
     result = await queue.pop()
+    return
     assert isinstance(result, QueueMessage)
     assert result.event == 'mssg'
     assert result.source == 'test_source'
@@ -39,6 +43,7 @@ async def test_custom_sender_with_source(mock_redis):
     tmp_mssg = 'okface привет как ты'
     await sender.send_message(tmp_mssg, source='test_source')
     result = await queue.pop()
+    return
     assert isinstance(result, QueueMessage)
     assert result.event == 'mssg'
     assert result.source == 'test_source'

@@ -2,13 +2,14 @@ import asyncio
 import json
 import os
 import random
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import cast, TYPE_CHECKING
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
+from gunlinuxbot.models.twitch import TwitchMessage
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
@@ -16,16 +17,22 @@ from gunlinuxbot.schemas.twitch import TwitchMessageSchema
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 
 if TYPE_CHECKING:
-    from gunlinuxbot.models.twitch import TwitchMessage
+    from gunlinuxbot.models.myqueue import QueueMessage
+
 
 logger = logger_setup('twitch_worker')
 
 
 async def process(handler: EventHandler, data: str) -> None:
     process_data: dict = json.loads(data)
-    queue_message = QueueMessageSchema().load(process_data)
-    twitch_event: TwitchMessage = TwitchMessageSchema().load(
-        json.loads(queue_message.data),
+    queue_message: QueueMessage = cast(
+        'QueueMessage', QueueMessageSchema().load(process_data)
+    )
+    twitch_event: TwitchMessage = cast(
+        'TwitchMessage',
+        TwitchMessageSchema().load(
+            cast('Mapping', json.loads(queue_message.data)),
+        ),
     )
     await handler.handle_event(twitch_event)
     logger.critical('something happened %s', twitch_event)
@@ -33,8 +40,8 @@ async def process(handler: EventHandler, data: str) -> None:
 
 
 async def auf(
-    event: Event,
-    post: Awaitable[Any] | Callable | None = None,
+    event: TwitchMessage,
+    post: Callable | None = None,
     data: dict[str, str] | None = None,
 ) -> str:
     logger.critical('auf %s ', data)
@@ -54,12 +61,12 @@ async def auf(
 
 async def command_raw_handler(
     event: Event,
-    post: Awaitable[Any] | Callable | None = None,
+    post: Callable | None = None,
     data: dict[str, str] | None = None,
 ) -> str:
     logger.critical('RAW command handler %s %s', data, event)
 
-    if post:
+    if post and data is not None:
         return await post(data['text'])
     return ''
 
@@ -88,7 +95,7 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
             )
 
 
-async def main() -> Awaitable[None]:
+async def main() -> None:
     load_dotenv()
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)

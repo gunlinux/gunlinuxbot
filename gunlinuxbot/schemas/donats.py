@@ -14,7 +14,7 @@ class AlertEventSchema(Schema):
     message = fields.Str()
     # valdate as date???
     date_created = fields.Str()
-    _is_test_alert =fields.Bool()
+    _is_test_alert = fields.Bool()
 
     class Meta:
         unknown = EXCLUDE

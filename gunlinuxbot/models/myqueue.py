@@ -8,5 +8,3 @@ class QueueMessage:
     data: str
     timestamp: datetime
     source: str = ''
-
-

@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 from collections.abc import Callable, Coroutine
 from dataclasses import asdict
@@ -42,7 +41,7 @@ async def init_process(
             'data': message_dict,
         }
         logger.debug('new process_mssg da_events %s', payload)
-        await work_queue.push(json.dumps(payload))
+        await work_queue.push(payload)
 
     return process_mssg
 

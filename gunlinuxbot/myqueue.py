@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
+from collections.abc import Mapping
 
 from redis import asyncio as aioredis
 
 if TYPE_CHECKING:
     from redis.asyncio.client import Redis
 from redis.exceptions import (
-        ConnectionError as RedisConnectionError,
-        TimeoutError as RedisTimeoutError,
+    ConnectionError as RedisConnectionError,
+    TimeoutError as RedisTimeoutError,
 )
-from gunlinuxbot.models.myqueue import QueueMessage
 
 from .utils import logger_setup, dump_json
 
@@ -17,26 +17,20 @@ logger = logger_setup('gunlinuxbot.myqueue')
 
 
 class Connection(ABC):
+    @abstractmethod
+    async def push(self, name: str, data: str | Mapping) -> None: ...
 
     @abstractmethod
-    async def push(self, name: str, data: str) -> None:
-        ...
+    async def pop(self, name: str) -> str | None: ...
 
     @abstractmethod
-    async def pop(self, name: str) -> str | None:
-        ...
+    async def llen(self, name: str) -> int | None: ...
 
     @abstractmethod
-    async def llen(self, name: str) -> int | None:
-        ...
+    async def walk(self, name: str) -> list[Any]: ...
 
     @abstractmethod
-    async def walk(self, name: str) -> list[Any]:
-        ...
-
-    @abstractmethod
-    async def clean(self, name: str) -> None:
-        ...
+    async def clean(self, name: str) -> None: ...
 
 
 class RedisConnection(Connection):
@@ -48,7 +42,7 @@ class RedisConnection(Connection):
         if self._redis:
             await self._redis.close()
 
-    async def push(self, name: str, data: QueueMessage) -> None:
+    async def push(self, name: str, data: str | Mapping) -> None:
         if self._redis is None:
             logger.critical('cant push no redis conn')
             return
@@ -73,8 +67,8 @@ class RedisConnection(Connection):
             return None
         try:
             return await self._redis.llen(name)
-        except (ConnectionError, TimeoutError) as e:
-            logger.error('Failed to get length from Redis: %s', str(e))
+        except (ConnectionError, TimeoutError):
+            logger.exception('Failed to get length from Redis')
             raise
 
     async def walk(self, name: str) -> list[Any]:
@@ -83,19 +77,17 @@ class RedisConnection(Connection):
             return []
         try:
             return await self._redis.lrange(name, 0, -1)
-        except (ConnectionError, TimeoutError) as e:
-            logger.error('Failed to walk Redis: %s', str(e))
+        except (ConnectionError, TimeoutError):
+            logger.exception('Failed to walk Redis')
             raise
 
     async def clean(self, name: str) -> None:
         if self._redis is None:
             logger.critical('cant llen no redis conn')
-            return None
         try:
-            return await self._redis.delete(name)
-        except (ConnectionError, TimeoutError) as e:
-            logger.critical('cant llen from redis conn, %s', e)
-        return None
+            await self._redis.delete(name)
+        except (ConnectionError, TimeoutError):
+            logger.exception('cant llen from redis conn')
 
 
 class Queue:
@@ -104,7 +96,7 @@ class Queue:
         self.last_id: str | None = None
         self.connection: Connection = connection
 
-    async def push(self, data: str) -> None:
+    async def push(self, data: str | Mapping) -> None:
         await self.connection.push(self.name, data)
 
     async def pop(self) -> str | None:
