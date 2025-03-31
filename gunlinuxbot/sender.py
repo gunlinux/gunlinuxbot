@@ -1,37 +1,94 @@
 import asyncio
-import json
 import os
-from datetime import datetime
 
 from dotenv import load_dotenv
 
-from .myqueue import Queue, RedisConnection
+from abc import ABC, abstractmethod
+
+from .myqueue import Connection, Queue, RedisConnection
 from .utils import logger_setup
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 
 logger = logger_setup('gunlinuxbot.sender')
 
 
-class Sender:
-    def __init__(self, queue: Queue) -> None:
-        self.queue = queue
+class SenderAbc(ABC):
+    @abstractmethod
+    def __init__(
+        self,
+        queue_name: str,
+        connection: Connection,
+        source: str = '',
+    ) -> None: ...
 
-    async def send_message(self, message: str) -> None:
-        event = {
-            "event": "mssg",
-            "timestamp": datetime.now().timestamp(),
-            "data": {"message": message},
+    @abstractmethod
+    async def send_message(
+        self,
+        message: str,
+        source: str = '',
+        queue_name: str = '',
+    ) -> None: ...
+
+
+class Sender(SenderAbc):
+    def __init__(
+        self,
+        queue_name: str,
+        connection: Connection,
+        source: str = '',
+    ) -> None:
+        self.connection = connection
+        self.queue = Queue(name=queue_name, connection=connection)
+        self.source = source
+
+    async def send_message(
+        self,
+        message: str,
+        source: str = '',
+        queue_name: str = '',
+    ) -> None:
+        payload = {
+            'event': 'mssg',
+            'data': message,
+            'source': source or self.source,
         }
-        await self.queue.push(json.dumps(event))
+        message = QueueMessageSchema().load(payload)
+        if not queue_name:
+            await self.queue.push(message)
+            return
+        await Queue(name=queue_name, connection=self.connection).push(message)
+
+
+class DummySender(SenderAbc):
+    def __init__(
+        self,
+        queue_name: str,
+        connection: Connection,
+        source: str = '',
+    ) -> None:
+        logger.debug('init dummy sender for q %s', queue_name)
+        self.connection = connection
+        self.queue_name = queue_name
+        self.source = source
+
+    async def send_message(
+        self,
+        message: str,
+        source: str = '',
+        queue_name: str = '',
+    ) -> None:
+        _ = source, queue_name
+        logger.debug('send_message to %s "%s"', self.queue_name, message)
 
 
 async def main() -> None:
     load_dotenv()
-    redis_url = os.getenv("REDIS_URL", "redis://localhost/1")
-    redis_connection = RedisConnection(redis_url, name="twitch_out")
-    queue = Queue(connection=redis_connection)
+    redis_url: str = os.getenv('REDIS_URL', 'redis://localhost/1')
+    redis_connection: RedisConnection = RedisConnection(redis_url)
+    queue: Queue = Queue(name='twitch_out', connection=redis_connection)
     sender = Sender(queue=queue)
-    await sender.send_message("okface привет как ты")
+    await sender.send_message('okface привет как ты')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())
