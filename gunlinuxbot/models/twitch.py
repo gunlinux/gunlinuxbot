@@ -7,6 +7,7 @@ class SendMessage:
     """
     Модель сообщения которое мы просто должны доставить на twitch
     """
+
     source: str
     message: str
 
@@ -16,6 +17,7 @@ class TwitchMessage(Event):
     """
     Модель входящего сообщения
     """
+
     content: str
     echo: bool
     first: bool

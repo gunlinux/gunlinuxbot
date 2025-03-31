@@ -21,6 +21,7 @@ dev = [
     "types-redis>=4.6.0.20241004",
     "pytest>=8.3.3",
     "pytest-asyncio>=0.25.3",
+    "pyright>=1.1.398",
 ]
 
 [tool.ruff.lint]
@@ -28,7 +29,7 @@ dev = [
 select = ["ALL"]
 
 # 2. Avoid enforcing line-length violations (`E501`)
-ignore = ["E501", "Q000", "D", "DTZ005", "SIM117", "ANN", "I001", "S101", "T201"]
+ignore = ["E501", "Q000", "D", "DTZ005", "SIM117", "ANN", "I001", "S101", "T201", "COM812", "Q003"]
 
 # 3. Avoid trying to fix flake8-bugbear (`B`) violations.
 unfixable = ["B"]
@@ -47,3 +48,7 @@ warn_return_any = false
 warn_unused_configs = false
 ignore_missing_imports = true
 check_untyped_defs = true
+
+[tool.pyright]
+ignore = ["tests"]
+reportOptionalCall = false

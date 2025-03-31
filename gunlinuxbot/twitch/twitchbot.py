@@ -28,7 +28,7 @@ class TwitchBot(commands.Bot):
 
 
 class TwitchBotSender(TwitchBot):
-    async def send_message(self, message: Message) -> None:
+    async def send_message(self, message: str) -> None:
         if not self.connected_channels:
             logger.warning('no connected channels')
             return

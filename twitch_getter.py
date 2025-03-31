@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import os
-from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any
+from collections.abc import Callable, Coroutine, Mapping
+from typing import Any, cast, TYPE_CHECKING
 
 from dotenv import load_dotenv
 
@@ -13,7 +13,10 @@ from gunlinuxbot.twitch.twitchbot import TwitchBotGetter
 from gunlinuxbot.utils import dump_json, logger_setup
 
 if TYPE_CHECKING:
-    from twitchio.message import Message
+    from gunlinuxbot.models.myqueue import QueueMessage
+    from gunlinuxbot.models.twitch import TwitchMessage
+
+from twitchio.message import Message
 
 
 logger = logger_setup('twitch_sender')
@@ -26,17 +29,20 @@ async def init_process(
 ) -> Callable[['Message'], Coroutine[Any, Any, None]]:
     process_queue: Queue = queue
 
-    async def process_mssg(message: 'Message') -> None:
-        if not message:
-            return
-        twitch_message = TwitchMessageSchema().load(data=message)
-        payload = QueueMessageSchema().load(
-            {
-                'event': 'twitch_message',
-                'data': dump_json(twitch_message),
-            },
+    async def process_mssg(message: Message) -> None:
+        twitch_message: TwitchMessage = cast(
+            'TwitchMessage', TwitchMessageSchema().load(cast('Mapping', message))
         )
-        await process_queue.push(payload)
+        payload: QueueMessage = cast(
+            'QueueMessage',
+            QueueMessageSchema().load(
+                {
+                    'event': 'twitch_message',
+                    'data': dump_json(twitch_message),
+                },
+            ),
+        )
+        await process_queue.push(dump_json(payload))
 
     return process_mssg
 

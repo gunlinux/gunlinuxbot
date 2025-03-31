@@ -1,6 +1,8 @@
 import asyncio
 import json
 from pathlib import Path
+from typing import Any
+from collections.abc import Mapping
 
 import pytest
 
@@ -11,9 +13,9 @@ from gunlinuxbot.twitch.twitchbot import TwitchBot
 # Define the mock class
 class MockRedis(Connection):
     def __init__(self):
-        self.data = {}
+        self.data: dict[str, Any] = {}
 
-    async def push(self, name: str, data: str) -> None:
+    async def push(self, name: str, data: str | Mapping) -> None:
         if name not in self.data:
             self.data[name] = []
         self.data[name].append(data)
@@ -26,11 +28,12 @@ class MockRedis(Connection):
     async def llen(self, name):
         return len(self.data[name])
 
-    async def clean(self, name):
+    async def clean(self, name: str):
         self.data[name] = []
 
-    async def walk(self, name) -> None:
+    async def walk(self, name: str) -> list[Any]:
         _ = name
+        return []
 
 
 # Fixture to provide an instance of the mock database
@@ -46,9 +49,6 @@ def mock_twitch_external():
         for _ in range(30):
             await asyncio.sleep(0.01)
 
-    def dummy(args, **kwargs) -> None:
-        _, _ = args, kwargs
-
     TwitchBot.start = mock_run
     return TwitchBot
 
@@ -57,7 +57,9 @@ def load_test_queue(name: str):
     @pytest.fixture
     async def load_test_queue_from_data(mock_redis):
         queue = Queue(name=name, connection=mock_redis)
-        with Path.open(f'tests/data/{name}.json', 'r', encoding='utf-8') as test_data:
+        with Path.open(
+            Path(f'tests/data/{name}.json'), 'r', encoding='utf-8'
+        ) as test_data:
             data = json.load(test_data)
         for item in data:
             await queue.push(json.dumps(item))

@@ -1,13 +1,15 @@
-import asyncio
-import os
+from dataclasses import asdict
+from typing import cast, TYPE_CHECKING
 
-from dotenv import load_dotenv
 
 from abc import ABC, abstractmethod
 
-from .myqueue import Connection, Queue, RedisConnection
+from .myqueue import Connection, Queue
 from .utils import logger_setup
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
+
+if TYPE_CHECKING:
+    from gunlinuxbot.models.myqueue import QueueMessage
 
 logger = logger_setup('gunlinuxbot.sender')
 
@@ -52,11 +54,15 @@ class Sender(SenderAbc):
             'data': message,
             'source': source or self.source,
         }
-        message = QueueMessageSchema().load(payload)
+        new_message: QueueMessage = cast(
+            'QueueMessage', QueueMessageSchema().load(payload)
+        )
         if not queue_name:
-            await self.queue.push(message)
+            await self.queue.push(asdict(new_message))
             return
-        await Queue(name=queue_name, connection=self.connection).push(message)
+        await Queue(name=queue_name, connection=self.connection).push(
+            asdict(new_message)
+        )
 
 
 class DummySender(SenderAbc):
@@ -79,19 +85,3 @@ class DummySender(SenderAbc):
     ) -> None:
         _ = source, queue_name
         logger.debug('send_message to %s "%s"', self.queue_name, message)
-
-
-async def main() -> None:
-    load_dotenv()
-    redis_url: str = os.getenv('REDIS_URL', 'redis://localhost/1')
-    redis_connection: RedisConnection = RedisConnection(redis_url)
-    queue: Queue = Queue(name='twitch_out', connection=redis_connection)
-    sender = Sender(queue=queue)
-    
-    # Test message
-    test_message = os.getenv('TEST_MESSAGE', 'okface привет как ты')
-    await sender.send_message(test_message)
-
-
-if __name__ == '__main__':
-    asyncio.run(main())

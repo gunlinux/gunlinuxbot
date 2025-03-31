@@ -2,9 +2,11 @@
 dev: ## Install dev dependencies
 	uv sync --dev
 
-.PHONY: install
-install: 
-	uv sync
+check: test lint fix types
+	echo "check"
+
+types:
+	uv run pyright 
 
 .PHONY: test
 test:  ## Run tests
