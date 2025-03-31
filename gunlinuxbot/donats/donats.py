@@ -23,7 +23,9 @@ class DonatApi:
         )
         await self.sio.wait()
 
-    def __init__(self, token: str, handler: Callable[[Event], Coroutine[Any, Any, None]]) -> None:
+    def __init__(
+        self, token: str, handler: Callable[[Event], Coroutine[Any, Any, None]]
+    ) -> None:
         self.sio = socketio.AsyncClient()
 
         self.token: str = token
