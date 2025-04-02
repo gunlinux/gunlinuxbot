@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 from collections.abc import Mapping
 
+from gunlinuxbot.models.myqueue import QueueMessage
 from redis import asyncio as aioredis
 
 if TYPE_CHECKING:
@@ -96,10 +97,10 @@ class Queue:
         self.last_id: str | None = None
         self.connection: Connection = connection
 
-    async def push(self, data: str | Mapping) -> None:
+    async def push(self, data: QueueMessage) -> None:
         await self.connection.push(self.name, data)
 
-    async def pop(self) -> str | None:
+    async def pop(self) -> QueueMessage:
         return await self.connection.pop(self.name)
 
     async def llen(self) -> int | None:

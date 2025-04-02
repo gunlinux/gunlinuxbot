@@ -1,13 +1,16 @@
 import asyncio
+from dataclasses import asdict
 import json
 from pathlib import Path
 from typing import Any
-from collections.abc import Mapping
 
+from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 import pytest
 
 from gunlinuxbot.myqueue import Connection, Queue
 from gunlinuxbot.twitch.twitchbot import TwitchBot
+from gunlinuxbot.utils import dump_json
 
 
 # Define the mock class
@@ -15,15 +18,15 @@ class MockRedis(Connection):
     def __init__(self):
         self.data: dict[str, Any] = {}
 
-    async def push(self, name: str, data: str | Mapping) -> None:
+    async def push(self, name: str, data: QueueMessage) -> None:
         if name not in self.data:
             self.data[name] = []
-        self.data[name].append(data)
+        self.data[name].append(dump_json(asdict(data)))
 
     async def pop(self, name):
         if not self.data.get(name, []):
             return None
-        return self.data[name].pop(0)
+        return QueueMessageSchema().load(json.loads(self.data[name].pop(0)))
 
     async def llen(self, name):
         return len(self.data[name])
@@ -62,7 +65,9 @@ def load_test_queue(name: str):
         ) as test_data:
             data = json.load(test_data)
         for item in data:
-            await queue.push(json.dumps(item))
+            item['data'] = json.dumps(item['data'])
+            message = QueueMessageSchema().load(item)
+            await queue.push(message) # json.dumps(item))
         return queue
 
     return load_test_queue_from_data

@@ -1,7 +1,12 @@
 from dataclasses import asdict
+import json
+from typing import TYPE_CHECKING
 from gunlinuxbot.schemas.donats import AlertEventSchema
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.myqueue import Queue
 from datetime import datetime
+if TYPE_CHECKING:
+    from gunlinuxbot.models.myqueue import QueueMessage
 
 
 async def test_donat_route(mock_redis):
@@ -30,13 +35,14 @@ async def test_donat_route(mock_redis):
     message = AlertEventSchema().load(raw_event)
     message_dict = asdict(message)
     message_dict.get('id', None)
+    message_dict['alert_type'] = '1'
+    message_dict['billing_system'] = 'fake'
     payload = {
         'event': 'da_message',
-        'timestamp': datetime.timestamp(datetime.now()),
-        'data': message_dict,
+        'timestamp': datetime.now().isoformat(),
+        'data': json.dumps(message_dict),
     }
-
+    queue_message: QueueMessage = QueueMessageSchema().load(payload)
     queue = Queue(name='test_queue', connection=mock_redis)
-
-    await queue.push(payload)
+    await queue.push(queue_message)
     assert await queue.pop()
