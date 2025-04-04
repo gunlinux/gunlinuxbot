@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from collections.abc import Callable, Coroutine, Mapping
+from dataclasses import asdict
 from typing import Any, cast, TYPE_CHECKING
 
 from dotenv import load_dotenv
@@ -30,6 +31,7 @@ async def init_process(
     process_queue: Queue = queue
 
     async def process_mssg(message: Message) -> None:
+        print(type(message), message)
         twitch_message: TwitchMessage = cast(
             'TwitchMessage', TwitchMessageSchema().load(cast('Mapping', message))
         )
@@ -38,7 +40,7 @@ async def init_process(
             QueueMessageSchema().load(
                 {
                     'event': 'twitch_message',
-                    'data': dump_json(twitch_message),
+                    'data': dump_json(asdict(twitch_message)),
                 },
             ),
         )
