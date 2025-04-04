@@ -1,40 +1,40 @@
 import asyncio
-from dataclasses import asdict
 import json
 from pathlib import Path
-from typing import Any
+import typing
 
-from gunlinuxbot.models.myqueue import QueueMessage
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 import pytest
 
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.myqueue import Connection, Queue
 from gunlinuxbot.twitch.twitchbot import TwitchBot
-from gunlinuxbot.utils import dump_json
+
+if typing.TYPE_CHECKING:
+    from gunlinuxbot.models.myqueue import QueueMessage
 
 
 # Define the mock class
 class MockRedis(Connection):
     def __init__(self):
-        self.data: dict[str, Any] = {}
+        self.data: dict[str, typing.Any] = {}
 
-    async def push(self, name: str, data: QueueMessage) -> None:
+    async def push(self, name: str, data: str) -> None:
         if name not in self.data:
             self.data[name] = []
-        self.data[name].append(dump_json(asdict(data)))
+        self.data[name].append(data)
 
-    async def pop(self, name):
+    async def pop(self, name: str) -> str:
         if not self.data.get(name, []):
-            return None
-        return QueueMessageSchema().load(json.loads(self.data[name].pop(0)))
+            return ''
+        return self.data[name].pop(0)
 
-    async def llen(self, name):
+    async def llen(self, name) -> int:
         return len(self.data[name])
 
     async def clean(self, name: str):
         self.data[name] = []
 
-    async def walk(self, name: str) -> list[Any]:
+    async def walk(self, name: str) -> list[str]:
         _ = name
         return []
 
@@ -66,8 +66,10 @@ def load_test_queue(name: str):
             data = json.load(test_data)
         for item in data:
             item['data'] = json.dumps(item['data'])
-            message = QueueMessageSchema().load(item)
-            await queue.push(message) # json.dumps(item))
+            message: QueueMessage = typing.cast(
+                'QueueMessage', QueueMessageSchema().load(item)
+            )
+            await queue.push(message)
         return queue
 
     return load_test_queue_from_data

@@ -1,27 +1,21 @@
 import asyncio
-import json
 import os
 import logging
-from typing import cast, TYPE_CHECKING
 
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.twitch.twitchbot import TwitchBotSender
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
 
-if TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.models.myqueue import QueueMessage
 
 logger = logger_setup('twitch_sender')
 twitchio_logger = logging.getLogger('twitchio')
 twitchio_logger.setLevel(logging.INFO)
 
 
-def process(event: str) -> str | None:
-    data_dict = json.loads(event)
-    data: QueueMessage = cast('QueueMessage', QueueMessageSchema().load(data_dict))
+def process(data: QueueMessage) -> str | None:
     logger.debug('%s process %s %s', __name__, data.event, data.timestamp)
     return data.data
 

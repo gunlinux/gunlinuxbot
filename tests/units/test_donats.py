@@ -5,6 +5,7 @@ from gunlinuxbot.schemas.donats import AlertEventSchema
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.myqueue import Queue
 from datetime import datetime
+
 if TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
 

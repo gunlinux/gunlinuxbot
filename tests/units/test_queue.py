@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from datetime import datetime
 from gunlinuxbot.myqueue import Queue
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
+
 if TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
 
@@ -20,7 +21,7 @@ async def test_queue(mock_redis):
     }
     payload2 = {
         'event': 'Test event 2',
-        'data': json.dumps({'kinda': 1}),
+        'data': json.dumps({'kinda': 2}),
         'source': 'test_queue',
         'timestamp': dummy_time,
     }

@@ -42,7 +42,7 @@ async def init_process(
                 },
             ),
         )
-        await process_queue.push(dump_json(payload))
+        await process_queue.push(payload)
 
     return process_mssg
 
