@@ -7,6 +7,7 @@ from typing import cast, TYPE_CHECKING
 from dotenv import load_dotenv
 
 from gunlinuxbot.handlers import DonatEventHandler, Event, EventHandler
+from gunlinuxbot.models.myqueue import QueueMessage
 from gunlinuxbot.schemas.donats import AlertEventSchema
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
@@ -18,14 +19,9 @@ if TYPE_CHECKING:
 logger = logger_setup('donats_worker')
 
 
-async def process(handler: EventHandler, data: str) -> None:
-    if not data or data == 'None':
-        logger.debug('Received empty data, skipping')
-        return
-    json_data: dict = json.loads(data)
-    payload_data = json_data.get('data', {})
-    logger.critical('data %s', payload_data)
-    event: AlertEvent = cast('AlertEvent', AlertEventSchema().load(payload_data))
+async def process(handler: EventHandler, message: QueueMessage) -> None:
+    data_json = json.loads(message.data)
+    event: AlertEvent = cast('AlertEvent', AlertEventSchema().load(data_json))
     logger.debug('process new event %s', event)
     await handler.handle_event(event)
     await asyncio.sleep(1)
@@ -62,9 +58,9 @@ async def main() -> None:
 
     try:
         while not stop_event.is_set():
-            new_event = await queue.pop()
-            if new_event:
-                await process(handler=donat_handler, data=new_event)
+            new_event: QueueMessage | None = await queue.pop()
+            if new_event is not None:
+                await process(handler=donat_handler, message=new_event)
             await asyncio.sleep(1)
     finally:
         logger.info('Shutting down...')

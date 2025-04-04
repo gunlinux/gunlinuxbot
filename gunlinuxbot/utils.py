@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import typing
-from dataclasses import asdict
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -15,13 +14,9 @@ class DateTimeEncoder(json.JSONEncoder):
 
 
 def dump_json(data: typing.Any) -> str:
-    if isinstance(data, bytes):
-        return str(data)
-    if isinstance(data, str):
-        return data
     if isinstance(data, typing.Mapping):
-        return json.dumps(typing.Mapping)
-    return json.dumps(asdict(data), cls=DateTimeEncoder)
+        return json.dumps(data, cls=DateTimeEncoder)
+    return json.dumps(data, cls=DateTimeEncoder)
 
 
 def logger_setup(name: str) -> logging.Logger:

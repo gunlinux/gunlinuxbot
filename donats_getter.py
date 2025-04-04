@@ -3,7 +3,7 @@ import os
 from collections.abc import Callable, Coroutine
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any
+import typing
 from socketio import exceptions as socketio_exceptions
 
 from dotenv import load_dotenv
@@ -11,21 +11,22 @@ from dotenv import load_dotenv
 from gunlinuxbot.donats.donats import DonatApi
 from gunlinuxbot.handlers import Event
 from gunlinuxbot.myqueue import Queue, RedisConnection
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
+
+if typing.TYPE_CHECKING:
+    from gunlinuxbot.models.myqueue import QueueMessage
 
 logger = logger_setup('donats_getter')
 
 
 async def init_process(
     queue: Queue,
-) -> Callable[[Event], Coroutine[Any, Any, None]]:
+) -> Callable[[Event], Coroutine[typing.Any, typing.Any, None]]:
     work_queue: Queue = queue
 
     async def process_mssg(message: Event) -> None:
         logger.critical(message)
-        if not message:
-            logger.critical('process_mssg no message')
-            return
         message_dict = asdict(message)
         message_id = message_dict.get('id', None)
         if queue.last_id and queue.last_id == message_id:
@@ -41,7 +42,10 @@ async def init_process(
             'data': message_dict,
         }
         logger.debug('new process_mssg da_events %s', payload)
-        await work_queue.push(payload)
+        new_message: QueueMessage = typing.cast(
+            'QueueMessage', QueueMessageSchema().load(payload)
+        )
+        await work_queue.push(new_message)
 
     return process_mssg
 

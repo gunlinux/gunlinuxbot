@@ -1,8 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from collections.abc import Mapping
+import json
+from dataclasses import asdict
 
 from redis import asyncio as aioredis
+
+from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 
 if TYPE_CHECKING:
     from redis.asyncio.client import Redis
@@ -18,13 +23,13 @@ logger = logger_setup('gunlinuxbot.myqueue')
 
 class Connection(ABC):
     @abstractmethod
-    async def push(self, name: str, data: str | Mapping) -> None: ...
+    async def push(self, name: str, data: str) -> None: ...
 
     @abstractmethod
-    async def pop(self, name: str) -> str | None: ...
+    async def pop(self, name: str) -> str: ...
 
     @abstractmethod
-    async def llen(self, name: str) -> int | None: ...
+    async def llen(self, name: str) -> int: ...
 
     @abstractmethod
     async def walk(self, name: str) -> list[Any]: ...
@@ -51,20 +56,20 @@ class RedisConnection(Connection):
         except (RedisConnectionError, RedisTimeoutError) as e:
             logger.critical('cant push no redis conn, %s', e)
 
-    async def pop(self, name: str) -> str | None:
+    async def pop(self, name: str) -> str:
         if self._redis is None:
             logger.critical('cant pop no redis conn')
-            return None
+            return ''
         try:
             return await self._redis.lpop(name)
         except (RedisConnectionError, RedisTimeoutError) as e:
             logger.critical('cant pop from redis conn, %s', e)
-        return None
+        return ''
 
-    async def llen(self, name: str) -> int | None:
+    async def llen(self, name: str) -> int:
         if self._redis is None:
             logger.critical('cant llen no redis conn')
-            return None
+            return 0
         try:
             return await self._redis.llen(name)
         except (ConnectionError, TimeoutError):
@@ -96,11 +101,14 @@ class Queue:
         self.last_id: str | None = None
         self.connection: Connection = connection
 
-    async def push(self, data: str | Mapping) -> None:
-        await self.connection.push(self.name, data)
+    async def push(self, data: QueueMessage) -> None:
+        await self.connection.push(self.name, dump_json(asdict(data)))
 
-    async def pop(self) -> str | None:
-        return await self.connection.pop(self.name)
+    async def pop(self) -> QueueMessage | None:
+        temp_data: str = await self.connection.pop(self.name)
+        if not temp_data:
+            return None
+        return cast('QueueMessage', QueueMessageSchema().load(json.loads(temp_data)))
 
     async def llen(self) -> int | None:
         return await self.connection.llen(self.name)

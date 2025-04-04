@@ -2,25 +2,20 @@ import asyncio
 import datetime
 import json
 import os
-from typing import cast, TYPE_CHECKING
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError
 from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
 
-if TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.models.myqueue import QueueMessage
 
 logger = logger_setup('twitch_sender')
 
 
-async def process(event: str) -> None:
-    data_dict = json.loads(event)
-    data: QueueMessage = cast('QueueMessage', QueueMessageSchema().load(data_dict))
+async def process(data: QueueMessage) -> None:
     logger.debug('%s process %s %s', __name__, data.event, data.timestamp)
 
     url = 'http://127.0.0.1:6016/donate'

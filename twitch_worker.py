@@ -4,7 +4,7 @@ import os
 import random
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import cast, TYPE_CHECKING
+from typing import cast
 
 from dotenv import load_dotenv
 
@@ -14,20 +14,14 @@ from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 
-if TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.models.myqueue import QueueMessage
 
 
 logger = logger_setup('twitch_worker')
 
 
-async def process(handler: EventHandler, data: str) -> None:
-    process_data: dict = json.loads(data)
-    queue_message: QueueMessage = cast(
-        'QueueMessage', QueueMessageSchema().load(process_data)
-    )
+async def process(handler: EventHandler, queue_message: QueueMessage) -> None:
     twitch_event: TwitchMessage = cast(
         'TwitchMessage',
         TwitchMessageSchema().load(
@@ -116,9 +110,9 @@ async def main() -> None:
     await asyncio.sleep(1)
 
     while True:
-        new_event = await queue.pop()
-        if new_event:
-            await process(handler=twitch_handler, data=new_event)
+        new_event: QueueMessage | None = await queue.pop()
+        if new_event is not None:
+            await process(handler=twitch_handler, queue_message=new_event)
         await asyncio.sleep(0.1)
 
 

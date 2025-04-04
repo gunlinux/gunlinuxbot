@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from typing import cast, TYPE_CHECKING
 
 
@@ -58,11 +57,9 @@ class Sender(SenderAbc):
             'QueueMessage', QueueMessageSchema().load(payload)
         )
         if not queue_name:
-            await self.queue.push(asdict(new_message))
+            await self.queue.push(new_message)
             return
-        await Queue(name=queue_name, connection=self.connection).push(
-            asdict(new_message)
-        )
+        await Queue(name=queue_name, connection=self.connection).push(new_message)
 
 
 class DummySender(SenderAbc):

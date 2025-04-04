@@ -10,11 +10,12 @@ types:
 
 .PHONY: test
 test:  ## Run tests
-	uv run pytest
+	uv run pytest $(ARGS)
 
 .PHONY: test-dev
 test-dev:  ## Run tests
-	uv run pytest -vv -s
+	uv run pytest -vv -s $(ARGS)
+
 
 .PHONY: lint
 lint:  ## Run linters
