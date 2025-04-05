@@ -28,3 +28,20 @@ class AlertEvent(Event):
     # valdate as date???
     date_created: str
     _is_test_alert: bool
+    # Method to serialize the dataclass instance into JSON-compatible dict
+
+    def serialize(self) -> dict:
+        return {
+            'id': self.id,
+            'alert_type': self.alert_type.value if self.alert_type else None,
+            'billing_system': self.billing_system.value
+            if self.billing_system
+            else None,
+            'username': self.username,
+            'amount': self.amount,
+            'amount_formatted': self.amount_formatted,
+            'currency': self.currency,
+            'message': self.message,
+            'date_created': self.date_created,  # Assuming date is already in string format
+            '_is_test_alert': self._is_test_alert,
+        }

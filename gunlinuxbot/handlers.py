@@ -5,7 +5,7 @@ from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import TYPE_CHECKING, Any, cast
 
-from gunlinuxbot.models.donats import AlertEvent
+from gunlinuxbot.models.donats import AlertEvent, DonationTypes
 from gunlinuxbot.models.event import Event
 from gunlinuxbot.models.twitch import TwitchMessage
 
@@ -108,7 +108,10 @@ class DonatEventHandler(EventHandler):
 
     async def handle_event(self, event: Event) -> None:  # pyright: ignore[reportRedeclaration]
         event = cast('AlertEvent', event)
-        alert_type: int = int(cast('str', event.alert_type))
+        if isinstance(event.alert_type, DonationTypes):
+            alert_type = int(event.alert_type.value)
+        else:
+            alert_type: int = int(cast('str', event.alert_type))
         logger.critical('alert type %s %s %s', alert_type, type(alert_type), event)
         logger.critical('alert type don %s', DonationAlertTypes.DONATION)
         event: AlertEvent = cast('AlertEvent', event)
