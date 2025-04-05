@@ -2,7 +2,6 @@ from gunlinuxbot.myqueue import Queue
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.schemas.myqueue import QueueMessage, QueueMessageSchema
 from dataclasses import asdict
-import datetime
 
 
 async def test_sender(mock_redis):
@@ -15,7 +14,6 @@ async def test_sender(mock_redis):
     assert result.event == 'mssg'
     assert result.source == ''
     assert result.data == tmp_mssg
-    result.timestamp = datetime.datetime.now().isoformat()
     assert not QueueMessageSchema().validate(asdict(result))
 
 

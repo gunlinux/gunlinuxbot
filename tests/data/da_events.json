@@ -1,7 +1,6 @@
 [
   {
     "event": "da_message",
-    "timestamp": "2025-04-03T04:12:51.220167",
     "data": {
       "id": 95682041,
       "alert_type": "19",
@@ -17,7 +16,6 @@
   },
   {
     "event": "da_message",
-    "timestamp": "2025-04-03T04:12:51.220167",
     "data": {
       "id": 95682221,
       "alert_type": "19",

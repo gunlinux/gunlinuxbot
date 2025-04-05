@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, cast
-from collections.abc import Mapping
 import json
 from dataclasses import asdict
 
@@ -16,7 +15,7 @@ from redis.exceptions import (
     TimeoutError as RedisTimeoutError,
 )
 
-from .utils import logger_setup, dump_json
+from .utils import logger_setup
 
 logger = logger_setup('gunlinuxbot.myqueue')
 
@@ -47,12 +46,12 @@ class RedisConnection(Connection):
         if self._redis:
             await self._redis.close()
 
-    async def push(self, name: str, data: str | Mapping) -> None:
+    async def push(self, name: str, data: str) -> None:
         if self._redis is None:
             logger.critical('cant push no redis conn')
             return
         try:
-            await self._redis.rpush(name, dump_json(data))
+            await self._redis.rpush(name, data)
         except (RedisConnectionError, RedisTimeoutError) as e:
             logger.critical('cant push no redis conn, %s', e)
 
@@ -61,10 +60,13 @@ class RedisConnection(Connection):
             logger.critical('cant pop no redis conn')
             return ''
         try:
-            return await self._redis.lpop(name)
+            temp = await self._redis.lpop(name)
+            if temp and isinstance(temp, bytes):
+                return temp.decode('utf-8')
         except (RedisConnectionError, RedisTimeoutError) as e:
             logger.critical('cant pop from redis conn, %s', e)
-        return ''
+            return ''
+        return temp
 
     async def llen(self, name: str) -> int:
         if self._redis is None:
@@ -102,7 +104,7 @@ class Queue:
         self.connection: Connection = connection
 
     async def push(self, data: QueueMessage) -> None:
-        await self.connection.push(self.name, dump_json(asdict(data)))
+        await self.connection.push(self.name, json.dumps(asdict(data)))
 
     async def pop(self) -> QueueMessage | None:
         temp_data: str = await self.connection.pop(self.name)

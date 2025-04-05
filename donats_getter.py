@@ -1,9 +1,8 @@
 import asyncio
 import os
 from collections.abc import Callable, Coroutine
-from dataclasses import asdict
-from datetime import datetime
 import typing
+import json
 from socketio import exceptions as socketio_exceptions
 
 from dotenv import load_dotenv
@@ -16,6 +15,7 @@ from gunlinuxbot.utils import logger_setup
 
 if typing.TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
+    from gunlinuxbot.models.donats import AlertEvent
 
 logger = logger_setup('donats_getter')
 
@@ -27,7 +27,8 @@ async def init_process(
 
     async def process_mssg(message: Event) -> None:
         logger.critical(message)
-        message_dict = asdict(message)
+        message = typing.cast('AlertEvent', message)
+        message_dict = message.serialize()
         message_id = message_dict.get('id', None)
         if queue.last_id and queue.last_id == message_id:
             # doesnt repeat itself
@@ -38,8 +39,7 @@ async def init_process(
         message_dict.get('id', None)
         payload = {
             'event': 'da_message',
-            'timestamp': datetime.timestamp(datetime.now()),
-            'data': message_dict,
+            'data': json.dumps(message_dict),
         }
         logger.debug('new process_mssg da_events %s', payload)
         new_message: QueueMessage = typing.cast(
