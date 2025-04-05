@@ -1,22 +1,5 @@
-import datetime
-import json
 import logging
 import os
-import typing
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, o: object):
-        if isinstance(o, datetime.datetime):
-            return o.isoformat()
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, o)
-
-
-def dump_json(data: typing.Any) -> str:
-    if isinstance(data, typing.Mapping):
-        return json.dumps(data, cls=DateTimeEncoder)
-    return json.dumps(data, cls=DateTimeEncoder)
 
 
 def logger_setup(name: str) -> logging.Logger:

@@ -16,7 +16,7 @@ twitchio_logger.setLevel(logging.INFO)
 
 
 def process(data: QueueMessage) -> str | None:
-    logger.debug('%s process %s %s', __name__, data.event, data.timestamp)
+    logger.debug('%s process %s', __name__, data.event)
     return data.data
 
 

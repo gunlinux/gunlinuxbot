@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from gunlinuxbot.schemas.donats import AlertEventSchema
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.myqueue import Queue
-from datetime import datetime
 
 if TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
@@ -40,7 +39,6 @@ async def test_donat_route(mock_redis):
     message_dict['billing_system'] = 'fake'
     payload = {
         'event': 'da_message',
-        'timestamp': datetime.now().isoformat(),
         'data': json.dumps(message_dict),
     }
     queue_message: QueueMessage = QueueMessageSchema().load(payload)

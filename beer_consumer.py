@@ -16,7 +16,7 @@ logger = logger_setup('twitch_sender')
 
 
 async def process(data: QueueMessage) -> None:
-    logger.debug('%s process %s %s', __name__, data.event, data.timestamp)
+    logger.debug('%s process %s', __name__, data.event)
 
     url = 'http://127.0.0.1:6016/donate'
     stat_data = json.loads(data.data)

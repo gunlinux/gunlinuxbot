@@ -2,7 +2,6 @@ import asyncio
 import os
 from collections.abc import Callable, Coroutine
 from dataclasses import asdict
-from datetime import datetime
 import typing
 from socketio import exceptions as socketio_exceptions
 
@@ -38,7 +37,6 @@ async def init_process(
         message_dict.get('id', None)
         payload = {
             'event': 'da_message',
-            'timestamp': datetime.timestamp(datetime.now()),
             'data': message_dict,
         }
         logger.debug('new process_mssg da_events %s', payload)

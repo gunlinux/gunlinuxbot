@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import json
 from collections.abc import Callable, Coroutine, Mapping
 from dataclasses import asdict
 from typing import Any, cast, TYPE_CHECKING
@@ -11,7 +12,7 @@ from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
 from gunlinuxbot.twitch.twitchbot import TwitchBotGetter
-from gunlinuxbot.utils import dump_json, logger_setup
+from gunlinuxbot.utils import logger_setup
 
 if TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
@@ -31,7 +32,6 @@ async def init_process(
     process_queue: Queue = queue
 
     async def process_mssg(message: Message) -> None:
-        print(type(message), message)
         twitch_message: TwitchMessage = cast(
             'TwitchMessage', TwitchMessageSchema().load(cast('Mapping', message))
         )
@@ -40,7 +40,7 @@ async def init_process(
             QueueMessageSchema().load(
                 {
                     'event': 'twitch_message',
-                    'data': dump_json(asdict(twitch_message)),
+                    'data': json.dumps(asdict(twitch_message)),
                 },
             ),
         )
