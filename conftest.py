@@ -2,6 +2,7 @@ import asyncio
 import json
 from pathlib import Path
 import typing
+import logging
 
 import pytest
 
@@ -11,6 +12,9 @@ from gunlinuxbot.twitch.twitchbot import TwitchBot
 
 if typing.TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
+
+
+logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 
 # Define the mock class

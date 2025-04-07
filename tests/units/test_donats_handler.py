@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(name=__name__)
+
 from gunlinuxbot.handlers import DonatEventHandler, EventHandler
 from gunlinuxbot.myqueue import Queue
 from gunlinuxbot.sender import DummySender
@@ -5,7 +9,7 @@ from gunlinuxbot.sender import DummySender
 
 async def process(handler, data):
     _ = handler
-    print(f'process start {data}')
+    logger.debug('process start %s', data)
 
 
 async def test_real_events(load_da_events: Queue):

@@ -69,7 +69,6 @@ class DummySender(SenderAbc):
         connection: Connection,
         source: str = '',
     ) -> None:
-        logger.debug('init dummy sender for q %s', queue_name)
         self.connection = connection
         self.queue_name = queue_name
         self.source = source
