@@ -5,8 +5,6 @@ import typing
 import json
 from socketio import exceptions as socketio_exceptions
 
-from dotenv import load_dotenv
-
 from gunlinuxbot.donats.donats import DonatApi
 from gunlinuxbot.handlers import Event
 from gunlinuxbot.myqueue import Queue, RedisConnection
@@ -51,7 +49,6 @@ async def init_process(
 
 
 async def main() -> None:
-    load_dotenv()
     access_token = os.environ.get('DA_ACCESS_TOKEN', 'set_Dame_token')
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection = RedisConnection(redis_url)
