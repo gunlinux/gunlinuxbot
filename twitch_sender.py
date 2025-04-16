@@ -2,8 +2,6 @@ import asyncio
 import os
 import logging
 
-from dotenv import load_dotenv
-
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.twitch.twitchbot import TwitchBotSender
 from gunlinuxbot.utils import logger_setup
@@ -32,7 +30,6 @@ async def sender(bot: TwitchBotSender, queue: Queue) -> None:
 
 
 async def main() -> None:
-    load_dotenv()
     access_token: str = os.environ.get('ACCESS_TOKEN', 'set_Dame_token')
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)

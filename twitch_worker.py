@@ -6,8 +6,6 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import cast
 
-from dotenv import load_dotenv
-
 from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
 from gunlinuxbot.models.twitch import TwitchMessage
 from gunlinuxbot.myqueue import Queue, RedisConnection
@@ -90,7 +88,6 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
 
 
 async def main() -> None:
-    load_dotenv()
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
     queue: Queue = Queue(name='twitch_mssgs', connection=redis_connection)

@@ -4,14 +4,12 @@ from collections.abc import Callable, Coroutine, Mapping
 from typing import Any, cast
 
 import socketio
-from dotenv import load_dotenv
 from marshmallow.exceptions import ValidationError
 
 from gunlinuxbot.models.event import Event
 from gunlinuxbot.models.donats import AlertEvent
 from gunlinuxbot.schemas.donats import AlertEventSchema
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
 

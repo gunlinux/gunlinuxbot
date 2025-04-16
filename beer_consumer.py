@@ -5,7 +5,6 @@ import os
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError
-from dotenv import load_dotenv
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.utils import logger_setup
@@ -46,7 +45,6 @@ async def sender(queue: Queue) -> None:
 
 
 async def main() -> None:
-    load_dotenv()
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
     queue: Queue = Queue(name='bs_donats', connection=redis_connection)

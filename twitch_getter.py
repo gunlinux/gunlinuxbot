@@ -6,8 +6,6 @@ from collections.abc import Callable, Coroutine, Mapping
 from dataclasses import asdict
 from typing import Any, cast, TYPE_CHECKING
 
-from dotenv import load_dotenv
-
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
@@ -50,7 +48,6 @@ async def init_process(
 
 
 async def main() -> None:
-    load_dotenv()
     access_token: str = os.environ.get('ACCESS_TOKEN', 'set_Dame_token')
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)

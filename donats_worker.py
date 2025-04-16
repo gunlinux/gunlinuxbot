@@ -4,8 +4,6 @@ import os
 import signal
 from typing import cast, TYPE_CHECKING
 
-from dotenv import load_dotenv
-
 from gunlinuxbot.handlers import DonatEventHandler, Event, EventHandler
 from gunlinuxbot.models.myqueue import QueueMessage
 from gunlinuxbot.schemas.donats import AlertEventSchema
@@ -33,7 +31,6 @@ async def test_event(event: Event) -> str:
 
 
 async def main() -> None:
-    load_dotenv()
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection = RedisConnection(redis_url)
 
