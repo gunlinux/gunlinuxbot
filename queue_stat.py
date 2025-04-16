@@ -9,11 +9,11 @@ from gunlinuxbot.utils import logger_setup
 logger = logger_setup(__name__)
 
 
-async def get_queue_stat(queue_name: str, connection: RedisConnection) -> None:
+async def get_queue_stat(
+    queue_name: str, connection: RedisConnection
+) -> tuple[str, int | None]:
     queue: Queue = Queue(name=queue_name, connection=connection)
-    logger.info('%s %s', queue, await queue.llen())
-    for rec in await queue.walk():
-        logger.info(rec)
+    return queue_name, await queue.llen()
 
 
 async def queue_clean(queue_name: str, connection: RedisConnection) -> None:
@@ -26,9 +26,11 @@ async def get_queues_stat() -> None:
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
     queues = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
-    await asyncio.gather(
-        *[get_queue_stat(queue, connection=redis_connection) for queue in queues],
+    results = await asyncio.gather(
+        *[get_queue_stat(queue, connection=redis_connection) for queue in queues]
     )
+    for queue_name, queue_len in results:
+        logger.info('queue: %s (%s)', queue_name, queue_len)
 
 
 async def queues_clear() -> None:
@@ -37,7 +39,7 @@ async def queues_clear() -> None:
 
     queues = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
     await asyncio.gather(
-        *[queue_clean(queue, connection=redis_connection) for queue in queues],
+        *[queue_clean(queue, connection=redis_connection) for queue in queues]
     )
 
 
