@@ -3,8 +3,6 @@ import asyncio
 import os
 import sys
 
-from dotenv import load_dotenv
-
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.utils import logger_setup
 
@@ -24,7 +22,6 @@ async def queue_clean(queue_name: str, connection: RedisConnection) -> None:
 
 
 async def get_queues_stat() -> None:
-    load_dotenv()
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
@@ -35,7 +32,6 @@ async def get_queues_stat() -> None:
 
 
 async def queues_clear() -> None:
-    load_dotenv()
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 

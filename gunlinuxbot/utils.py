@@ -1,5 +1,8 @@
 import logging
 import os
+import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
+from dotenv import load_dotenv
 
 
 def logger_setup(name: str) -> logging.Logger:
@@ -17,9 +20,21 @@ def logger_setup(name: str) -> logging.Logger:
         - LOG_LEVEL: уровень логирования (по умолчанию DEBUG)
         - LOG_FORMAT: формат сообщений лога
     """
+    load_dotenv()
     default_format = '[%(asctime)s] %(name)-18s [%(levelname)s] %(message)s'
     log_format = os.getenv('LOG_FORMAT', default_format)
     log_formatter = logging.Formatter(log_format)
+    sentry_dsn: str = os.getenv('SENTRY_DSN', '')
+    if sentry_dsn:
+        sentry_sdk.init(  # pyright: ignore[reportPrivateImportUsage]
+            dsn=sentry_dsn,
+            integrations=[
+                LoggingIntegration(
+                    level=logging.INFO,  # Capture info and above as breadcrumbs
+                    event_level=logging.ERROR,  # Send records as events
+                ),
+            ],
+        )
 
     try:
         log_level = int(os.getenv('LOG_LEVEL', logging.DEBUG))
