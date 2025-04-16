@@ -48,8 +48,6 @@ async def init_process(
 
 
 async def main() -> None:
-    a = []
-    print(a[0])
     access_token: str = os.environ.get('ACCESS_TOKEN', 'set_Dame_token')
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
