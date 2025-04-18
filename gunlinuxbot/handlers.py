@@ -112,8 +112,6 @@ class DonatEventHandler(EventHandler):
             alert_type = int(event.alert_type.value)
         else:
             alert_type: int = int(cast('str', event.alert_type))
-        logger.critical('alert type %s %s %s', alert_type, type(alert_type), event)
-        logger.critical('alert type don %s', DonationAlertTypes.DONATION)
         event: AlertEvent = cast('AlertEvent', event)
         if alert_type == DonationAlertTypes.DONATION.value:
             await self._donation(event)
@@ -127,28 +125,25 @@ class DonatEventHandler(EventHandler):
             await self._follow(event)
             return
 
-        logger.critical('handle_event not implemented yet %s', event)
+        logger.warning('handle_event not implemented yet %s', event)
         return
 
     async def _donation(self, event: AlertEvent) -> None:
-        logger.debug('donat.event _donation')
+        logger.info('donat.event _donation')
         if event.username is None:
             event.username = 'anonym'
         mssg_text = f"""{self.admin} {event.username} пожертвовал
             {event.amount_formatted} {event.currency} | {event.message}"""
-        logger.critical(
-            '_donation %s %s', event.amount_formatted, type(event.amount_formatted)
-        )
         await self.send_donate(event)
         await self.chat(mssg_text)
 
     async def _follow(self, event: AlertEvent) -> None:
-        logger.debug('donat.event _follow')
+        logger.info('donat.event _follow')
         mssg_text = f'@gunlinux @{event.username} started follow auf'
         await self.chat(mssg_text)
 
     async def _custom_reward(self, event: AlertEvent) -> None:
-        logger.debug('donat.event _custom_reward %s', event)
+        logger.info('donat.event _custom_reward %s', event)
         await self.run_command(event)
 
     async def run_command(self, event: AlertEvent) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
