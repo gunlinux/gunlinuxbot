@@ -23,4 +23,4 @@ jobs:
 
     - name: Deploy to Server
       run: |
-        ssh -vv "${{ secrets.USERNAME }}@${{ secrets.HOST }}" 'bash -s' < .github/deploy.sh
+        ssh -vv "loki@gunlinux.ru" 'bash -s' < .github/deploy.sh
