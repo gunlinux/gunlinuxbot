@@ -14,6 +14,11 @@ git reset --hard origin/$BRANCH
 # e.g., npm install, yarn install for Node.js projects
 
 # Restart services using sudo
-sudo systemctl restart twitch_sender.service
+sudo systemctl restart donats_getter
+sudo systemctl restart donats_worker
+sudo systemctl restart twitch_getter
+sudo systemctl restart twitch_sender
+sudo systemctl restart twitch_worker
+sudo systemctl restart beer_consumer
 
 echo "Deployment completed successfully."

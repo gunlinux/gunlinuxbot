@@ -23,4 +23,4 @@ jobs:
 
     - name: Deploy to Server
       run: |
-        ssh -vv -o "StrictHostKeyChecking=no" "loki@gunlinux.ru" 'bash -s' < .github/deploy.sh
+        ssh -o "StrictHostKeyChecking=no" "loki@gunlinux.ru" 'bash -s' < .github/deploy.sh
