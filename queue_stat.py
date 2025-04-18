@@ -9,38 +9,27 @@ from gunlinuxbot.utils import logger_setup
 logger = logger_setup(__name__)
 
 
-async def get_queue_stat(
-    queue_name: str, connection: RedisConnection
-) -> tuple[str, int | None]:
-    queue: Queue = Queue(name=queue_name, connection=connection)
-    return queue_name, await queue.llen()
-
-
-async def queue_clean(queue_name: str, connection: RedisConnection) -> None:
-    queue: Queue = Queue(name=queue_name, connection=connection)
-    await queue.clean()
-
-
 async def get_queues_stat() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
-    results = await asyncio.gather(
-        *[get_queue_stat(queue, connection=redis_connection) for queue in queues]
-    )
-    for queue_name, queue_len in results:
-        logger.info('queue: %s (%s)', queue_name, queue_len)
+    queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
+    queues = [Queue(name=name, connection=redis_connection) for name in queues_names]
+
+    for queue in queues:
+        logger.info('queue: %s (%s)', queue.name, await queue.llen())
 
 
 async def queues_clear() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
-    await asyncio.gather(
-        *[queue_clean(queue, connection=redis_connection) for queue in queues]
-    )
+    queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
+    queues = [Queue(name=name, connection=redis_connection) for name in queues_names]
+
+    for queue in queues:
+        logger.info('clearing queue: %s', queue.name)
+        await queue.clean()
 
 
 def main() -> None:
