@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 class DonatApi:
     async def run(self) -> None:
-        logger.critical('rconnect')
         await self.sio.connect(
             'wss://socket.donationalerts.ru:443',
             transports='websocket',

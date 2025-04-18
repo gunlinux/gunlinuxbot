@@ -60,7 +60,7 @@ async def main() -> None:
         while True:
             await bot.run()
     except socketio_exceptions.ConnectionError:
-        logger.critical('Connection error we are reconnecting')
+        logger.warning('Connection error we are reconnecting')
 
 
 if __name__ == '__main__':

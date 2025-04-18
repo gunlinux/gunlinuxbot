@@ -54,7 +54,7 @@ async def command_raw_handler(
     post: Callable | None = None,
     data: dict[str, str] | None = None,
 ) -> str:
-    logger.critical('RAW command handler %s %s', data, event)
+    logger.debug('RAW command handler %s %s', data, event)
 
     if post and data is not None:
         return await post(data['text'])
