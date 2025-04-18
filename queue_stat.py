@@ -32,7 +32,6 @@ async def queues_clear() -> None:
         await queue.clean()
 
 
-
 def main() -> None:
     parser = argparse.ArgumentParser(
         description='Описание твоей программы',
