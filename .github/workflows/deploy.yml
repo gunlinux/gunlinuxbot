@@ -19,7 +19,7 @@ jobs:
       uses: webfactory/ssh-agent@v0.9.0
       with:
           ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY }}
+            ${{ secrets.PRIVATE_KEY_SSH }}
 
     - name: Deploy to Server
       run: |
