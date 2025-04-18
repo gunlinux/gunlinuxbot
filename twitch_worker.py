@@ -27,7 +27,7 @@ async def process(handler: EventHandler, queue_message: QueueMessage) -> None:
         ),
     )
     await handler.handle_event(twitch_event)
-    logger.critical('something happened %s', twitch_event)
+    logger.debug('something happened %s', twitch_event)
     await asyncio.sleep(1)
 
 
@@ -36,15 +36,13 @@ async def auf(
     post: Callable | None = None,
     data: dict[str, str] | None = None,
 ) -> str:
-    logger.critical('auf %s ', data)
+    logger.debug('auf %s ', data)
     symbols = ['AWOO', 'AUF', 'gunlinAuf']
     symbols_len = random.randint(6, 12)  #  noqa: S311
     out = [random.choice(symbols) for _ in range(symbols_len)]  # noqa: S311
 
     auf_str = ' '.join(out)
-    logger.critical('%s %s', auf_str, event)
     temp = f'@{event.author} Воистину {auf_str}'
-    logger.critical('auf end %s', temp)
 
     if post:
         return await post(temp)

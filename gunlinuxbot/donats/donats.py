@@ -43,12 +43,12 @@ class DonatApi:
 
         @self.sio.on('*')  # pyright: ignore[reportOptionalCall]
         async def catch_all(event: AlertEvent, data: str) -> None:
-            logger.critical('catch_all %s %s', event, len(data))
+            logger.debug('catch_all %s %s', event, len(data))
 
         @self.sio.on('donation')  # pyright: ignore[reportOptionalCall]
         async def on_message(message_data: str) -> None:
             data: Mapping = json.loads(message_data)
-            logger.critical('new event %s', data)
+            logger.debug('new event %s', data)
             try:
                 event: AlertEvent = cast('AlertEvent', AlertEventSchema().load(data))
             except ValidationError:
