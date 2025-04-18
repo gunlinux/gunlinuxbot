@@ -11,6 +11,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: test secrests
+      run: |
+        echo ${{ secrets.USERNAME  }}
 
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
