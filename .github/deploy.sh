@@ -1,7 +1,7 @@
 #!/bin/bash
 
-REPO_DIR="~loki/projects/gunlinuxbot"
-BRANCH="master"
+REPO_DIR="/home/loki/projects/gunlinuxbot"
+BRANCH="main"
 
 # Navigate to the repository directory
 cd $REPO_DIR || exit
