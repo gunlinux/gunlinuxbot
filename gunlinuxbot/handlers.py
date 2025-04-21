@@ -72,6 +72,7 @@ class EventHandler(ABC):
 
     async def run_command(self, event: TwitchMessage) -> None:
         logger.debug('Running command for event %s', event)
+        command_to_run = None
         for command_name, command in self.commands.items():
             if event.content.startswith('$') and not self.is_admin(event):
                 # ignoring admin syntax
@@ -80,13 +81,32 @@ class EventHandler(ABC):
 
             if event.content.startswith(command_name.lower()):
                 logger.debug('detected command: %s', command)
-                await command.run(event, post=self.chat)
+                command_to_run = command
+                break
+
+        if command_to_run:
+            await command_to_run.run(event, post=self.chat)
 
     async def chat(self, mssg: str) -> None:
         if self.sender is not None:
             await self.sender.send_message(mssg)
         else:
             logger.error('Cannot send message: sender is not initialized')
+
+    def clear_raw_commands(self) -> None:
+        if not self.commands:
+            return
+        commands_to_remove = []
+        for command_name, command in self.commands.items():
+            if (
+                command.real_runner
+                and command.real_runner.__name__ == 'command_raw_handler'
+            ):
+                commands_to_remove.append(command_name)
+        for command in commands_to_remove:
+            logger.info('command removed %s', command)
+            self.commands.pop(command)
+        return
 
 
 class TwitchEventHandler(EventHandler):

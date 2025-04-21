@@ -61,8 +61,18 @@ async def command_raw_handler(
     return ''
 
 
+def reload_command(command_dir, twitch_handler: TwitchEventHandler) -> Callable:
+    async def reload_command_inner(*args, **kwargs):
+        _, _ = args, kwargs
+        nonlocal twitch_handler, command_dir
+        get_commands_from_dir(command_dir, twitch_handler)
+
+    return reload_command_inner
+
+
 def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) -> None:
     # Get all files matching the '*.md' pattern
+    twitch_handler.clear_raw_commands()
     command_path = Path.cwd() / command_dir
     markdown_files = [
         f for f in command_path.iterdir() if f.is_file() and f.suffix == '.md'
@@ -102,6 +112,8 @@ async def main() -> None:
 
     command_dir = os.environ.get('COMMAND_DIR', './commands/')
     get_commands_from_dir(command_dir, twitch_handler)
+    reload_command_runner = reload_command(command_dir, twitch_handler)
+    Command('$reload', twitch_handler, real_runner=reload_command_runner)
     await asyncio.sleep(1)
 
     while True:
