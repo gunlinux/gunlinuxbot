@@ -178,3 +178,6 @@ class DonatEventHandler(EventHandler):
             if event.message.startswith(command_name.lower()):
                 logger.debug('detected command: %s', command)
                 await command.run(event, post=self.chat)
+                break
+        else:
+            await self.chat(f'{event.username} взял награду {event.message}')
