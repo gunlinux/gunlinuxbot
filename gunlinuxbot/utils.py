@@ -36,8 +36,9 @@ def logger_setup(name: str) -> logging.Logger:
             ],
         )
 
-    try:
-        log_level = int(os.getenv('LOG_LEVEL', logging.DEBUG))
+    log_level_raw = os.getenv('LOG_LEVEL', None)
+    if log_level_raw and log_level_raw.isdigit():
+        log_level = int(log_level_raw)
         if log_level not in (
             logging.DEBUG,
             logging.INFO,
@@ -46,7 +47,7 @@ def logger_setup(name: str) -> logging.Logger:
             logging.CRITICAL,
         ):
             log_level = logging.DEBUG
-    except ValueError:
+    else:
         log_level = logging.DEBUG
 
     logging.basicConfig(level=log_level)
@@ -59,5 +60,11 @@ def logger_setup(name: str) -> logging.Logger:
     logger_handler = logging.StreamHandler()
     logger_handler.setFormatter(log_formatter)
     logger.addHandler(logger_handler)
+
+    file_log = os.getenv('FILE_LOG', 'gunlinuxbot.log')
+    if file_log:
+        file_log_handler = logging.FileHandler(file_log)
+        file_log_handler.setFormatter(log_formatter)
+        logger.addHandler(file_log_handler)
 
     return logger
