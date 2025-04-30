@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, cast
 import json
-from dataclasses import asdict
 
 from redis import asyncio as aioredis
 
@@ -104,7 +103,8 @@ class Queue:
         self.connection: Connection = connection
 
     async def push(self, data: QueueMessage) -> None:
-        await self.connection.push(self.name, json.dumps(asdict(data)))
+        queue_message_dict = data.to_serializable_dict()
+        await self.connection.push(self.name, json.dumps(queue_message_dict))
 
     async def pop(self) -> QueueMessage | None:
         temp_data: str = await self.connection.pop(self.name)

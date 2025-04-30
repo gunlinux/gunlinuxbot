@@ -10,16 +10,21 @@ if TYPE_CHECKING:
 
 async def test_queue(mock_redis):
     queue = Queue(name='test_queue', connection=mock_redis)
+    from gunlinuxbot.models.myqueue import QueueMessageStatus
 
     payload1 = {
         'event': 'Test event 1',
         'data': json.dumps({'kinda': 1}),
         'source': 'test_queue',
+        'retry': 0,
+        'status': QueueMessageStatus.WAITING,
     }
     payload2 = {
         'event': 'Test event 2',
         'data': json.dumps({'kinda': 2}),
         'source': 'test_queue',
+        'retry': 0,
+        'status': QueueMessageStatus.WAITING,
     }
     message_one: QueueMessage = QueueMessageSchema().load(payload1)
     message_two: QueueMessage = QueueMessageSchema().load(payload2)
