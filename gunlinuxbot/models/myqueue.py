@@ -6,6 +6,7 @@ class QueueMessageStatus(Enum):
     WAITING = auto()
     PROCESSING = auto()
     FINISHED = auto()
+    DROPED = auto()
 
 
 @dataclass

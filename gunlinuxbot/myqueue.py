@@ -4,7 +4,7 @@ import json
 
 from redis import asyncio as aioredis
 
-from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.models.myqueue import QueueMessage, QueueMessageStatus
 from gunlinuxbot.schemas.myqueue import QueueMessageSchema
 
 if TYPE_CHECKING:
@@ -97,12 +97,21 @@ class RedisConnection(Connection):
 
 
 class Queue:
-    def __init__(self, name: str, connection: Connection) -> None:
+    def __init__(self, name: str, connection: Connection, max_retry: int = 5) -> None:
         self.name: str = name
         self.last_id: str | None = None
         self.connection: Connection = connection
+        self.max_retry: int = max_retry
 
     async def push(self, data: QueueMessage) -> None:
+        if data.status == QueueMessageStatus.PROCESSING:
+            data.retry += 1
+            data.status = QueueMessageStatus.WAITING
+
+        if data.retry > self.max_retry:
+            logger.critical('message retried more than %s %s', self.max_retry, data)
+            return
+
         queue_message_dict = data.to_serializable_dict()
         await self.connection.push(self.name, json.dumps(queue_message_dict))
 
@@ -110,7 +119,9 @@ class Queue:
         temp_data: str = await self.connection.pop(self.name)
         if not temp_data:
             return None
-        return cast('QueueMessage', QueueMessageSchema().load(json.loads(temp_data)))
+        message: QueueMessage = cast('QueueMessage', QueueMessageSchema().load(json.loads(temp_data)))
+        message.status = QueueMessageStatus.PROCESSING
+        return message
 
     async def llen(self) -> int | None:
         return await self.connection.llen(self.name)
