@@ -25,7 +25,7 @@ def logger_setup(name: str) -> logging.Logger:
     log_format = os.getenv('LOG_FORMAT', default_format)
     log_formatter = logging.Formatter(log_format)
     sentry_dsn: str = os.getenv('SENTRY_DSN', '')
-    if sentry_dsn:
+    if sentry_dsn and not os.getenv('TESTING', '0'):
         sentry_sdk.init(  # pyright: ignore[reportPrivateImportUsage]
             dsn=sentry_dsn,
             integrations=[
