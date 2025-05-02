@@ -24,6 +24,7 @@ lint:  ## Run linters
 .PHONY: fix
 fix:  ## Fix lint errors
 	uv run ruff check --fix
+	uv run ruff format
 
 .PHONY: cov
 cov: ## Run tests with coverage

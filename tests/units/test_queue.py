@@ -20,7 +20,9 @@ async def test_queue(mock_redis):
         'status': QueueMessageStatus.WAITING,
     }
     payload2 = {
-        'event': 'Test event 2', 'data': json.dumps({'kinda': 2}), 'source': 'test_queue',
+        'event': 'Test event 2',
+        'data': json.dumps({'kinda': 2}),
+        'source': 'test_queue',
         'retry': 0,
         'status': QueueMessageStatus.WAITING,
     }

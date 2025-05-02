@@ -119,7 +119,9 @@ class Queue:
         temp_data: str = await self.connection.pop(self.name)
         if not temp_data:
             return None
-        message: QueueMessage = cast('QueueMessage', QueueMessageSchema().load(json.loads(temp_data)))
+        message: QueueMessage = cast(
+            'QueueMessage', QueueMessageSchema().load(json.loads(temp_data))
+        )
         message.status = QueueMessageStatus.PROCESSING
         return message
 

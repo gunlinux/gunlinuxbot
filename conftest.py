@@ -17,7 +17,8 @@ if typing.TYPE_CHECKING:
 
 logging.getLogger('asyncio').setLevel(logging.WARNING)
 
-os.environ['TESTING'] = "1"
+os.environ['TESTING'] = '1'
+
 
 # Define the mock class
 class MockRedis(Connection):
