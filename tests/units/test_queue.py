@@ -116,6 +116,7 @@ async def test_queue_walk(mock_redis):
     await queue.push(message_two)
 
     items = await queue.walk()
-    assert len(items) == 2
+    expected_items_count = 2
+    assert len(items) == expected_items_count
     assert json.loads(items[0])['event'] == 'Test event 1'
     assert json.loads(items[1])['event'] == 'Test event 2'

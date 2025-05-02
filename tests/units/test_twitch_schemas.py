@@ -1,85 +1,77 @@
 import pytest
-from dataclasses import asdict
 from datetime import datetime
 from unittest.mock import Mock
 from marshmallow.exceptions import ValidationError
 
-from gunlinuxbot.schemas.twitch import TwitchMessageSchema, SendMessageSchema
-from gunlinuxbot.models.twitch import TwitchMessage, SendMessage
+from gunlinuxbot.schemas.twitch import (
+    SendMessageSchema,
+    TwitchMessageSchema,
+    TwitchMessage,
+)
 
 
 def test_send_message_schema():
-    # Test serialization and deserialization of SendMessage
-    data = {
-        'source': 'test_source',
-        'message': 'Hello, world!'
-    }
-    
+    data = {'source': 'test_source', 'message': 'Hello, world!'}
     # Test deserialization
     result = SendMessageSchema().load(data)
-    assert isinstance(result, SendMessage)
     assert result.source == data['source']
     assert result.message == data['message']
-    
     # Test serialization
     serialized = SendMessageSchema().dump(result)
     assert serialized == data
 
 
-def test_twitch_message_schema_dict():
-    # Test with dictionary input
+def test_twitch_message_schema():
+    timestamp = datetime.now()
     data = {
         'content': 'Test message',
+        'author': 'test_user',
+        'channel': 'test_channel',
+        'timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
         'echo': False,
         'first': True,
         'id': '123',
-        'channel': 'test_channel',
-        'author': 'test_user',
-        'timestamp': '2024-01-01 00:00:00'
     }
-    
     result = TwitchMessageSchema().load(data)
     assert isinstance(result, TwitchMessage)
     assert result.content == data['content']
+    assert result.author == data['author']
+    assert result.channel == data['channel']
+    assert result.timestamp.strftime('%Y-%m-%d %H:%M:%S') == data['timestamp']
     assert result.echo == data['echo']
     assert result.first == data['first']
     assert result.id == data['id']
-    assert result.channel == data['channel']
-    assert result.author == data['author']
-    assert result.timestamp == data['timestamp']
 
 
-def test_twitch_message_schema_message():
-    # Mock a TwitchIO Message object
+def test_twitch_message_schema_from_mock():
+    timestamp = datetime.now()
     mock_author = Mock()
     mock_author.name = 'test_user'
-    
     mock_channel = Mock()
     mock_channel.name = 'test_channel'
-    
     mock_message = Mock()
     mock_message.content = 'Test message'
+    mock_message.channel = mock_channel
+    mock_message.author = mock_author
+    mock_message.timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S')
     mock_message.echo = False
     mock_message.first = True
     mock_message.id = '123'
-    mock_message.channel = mock_channel
-    mock_message.author = mock_author
-    mock_message.timestamp = datetime.now()
-    
     result = TwitchMessageSchema().load(mock_message)
     assert isinstance(result, TwitchMessage)
     assert result.content == mock_message.content
+    assert result.author == mock_author.name
+    assert result.channel == mock_channel.name
+    assert result.timestamp.strftime('%Y-%m-%d %H:%M:%S') == mock_message.timestamp
     assert result.echo == mock_message.echo
     assert result.first == mock_message.first
     assert result.id == mock_message.id
-    assert result.channel == mock_message.channel.name
-    assert result.author == mock_message.author.name
-    assert result.timestamp == str(mock_message.timestamp)
 
 
-def test_twitch_message_schema_none():
-    # Test with None input - should raise ValidationError since content is required
-    with pytest.raises(ValidationError) as exc_info:
+def test_twitch_message_schema_validation():
+    with pytest.raises(
+        ValidationError, match='Missing data for required field.'
+    ) as exc_info:
         TwitchMessageSchema().load(None)
     assert 'content' in exc_info.value.messages
-    assert 'Missing data for required field.' in exc_info.value.messages['content'] 
+    assert 'Missing data for required field.' in exc_info.value.messages['content']
