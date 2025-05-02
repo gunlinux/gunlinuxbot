@@ -453,6 +453,18 @@ wheels = [
 ]
 
 [[package]]
+name = "marshmallow-enum"
+version = "1.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "marshmallow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8e/8c/ceecdce57dfd37913143087fffd15f38562a94f0d22823e3c66eac0dca31/marshmallow-enum-1.5.1.tar.gz", hash = "sha256:38e697e11f45a8e64b4a1e664000897c659b60aa57bfa18d44e226a9920b6e58", size = 4013 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/59/ef3a3dc499be447098d4a89399beb869f813fee1b5a57d5d79dee2c1bf51/marshmallow_enum-1.5.1-py2.py3-none-any.whl", hash = "sha256:57161ab3dbfde4f57adeb12090f39592e992b9c86d206d02f6bd03ebec60f072", size = 4186 },
+]
+
+[[package]]
 name = "multidict"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -790,6 +802,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "donationalertsapi" },
     { name = "marshmallow" },
+    { name = "marshmallow-enum" },
     { name = "obs-websocket-py" },
     { name = "python-dotenv" },
     { name = "python-socketio" },
@@ -812,6 +825,7 @@ dev = [
 requires-dist = [
     { name = "donationalertsapi", specifier = ">=2.0.2" },
     { name = "marshmallow", specifier = ">=3.26.1" },
+    { name = "marshmallow-enum", specifier = ">=1.5.1" },
     { name = "obs-websocket-py", specifier = ">=1.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "python-socketio", specifier = ">=5.11.4" },

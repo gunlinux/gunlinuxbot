@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import typing
 import logging
+import os
 
 import pytest
 
@@ -15,6 +16,8 @@ if typing.TYPE_CHECKING:
 
 
 logging.getLogger('asyncio').setLevel(logging.WARNING)
+
+os.environ['TESTING'] = '1'
 
 
 # Define the mock class
