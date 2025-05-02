@@ -9,6 +9,7 @@ dependencies = [
     "marshmallow>=3.26.1",
     "marshmallow-enum>=1.5.1",
     "obs-websocket-py>=1.0",
+    "pytest-coverage>=0.0",
     "python-dotenv>=1.0.1",
     "python-socketio>=5.11.4",
     "redis>=5.2.0",
