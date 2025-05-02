@@ -18,7 +18,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy>=1.13.0",
     "ruff>=0.7.4",
     "types-redis>=4.6.0.20241004",
     "pytest>=8.3.3",
@@ -44,12 +43,6 @@ unfixable = ["B"]
 [tool.ruff.format]
 # 5. Use single quotes in `ruff format`.
 quote-style = "single"
-
-[tool.mypy]
-warn_return_any = false
-warn_unused_configs = false
-ignore_missing_imports = true
-check_untyped_defs = true
 
 [tool.pyright]
 ignore = ["tests"]
