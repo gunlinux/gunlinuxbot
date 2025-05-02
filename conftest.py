@@ -42,8 +42,7 @@ class MockRedis(Connection):
         self.data[name] = []
 
     async def walk(self, name: str) -> list[str]:
-        _ = name
-        return []
+        return self.data.get(name, [])
 
 
 # Fixture to provide an instance of the mock database
