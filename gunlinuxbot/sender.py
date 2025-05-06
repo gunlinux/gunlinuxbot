@@ -1,4 +1,4 @@
-from typing import cast, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING, Any
 
 
 from abc import ABC, abstractmethod
@@ -48,7 +48,7 @@ class Sender(SenderAbc):
         source: str = '',
         queue_name: str = '',
     ) -> None:
-        payload = {
+        payload: dict[str, Any] = {
             'event': 'mssg',
             'data': message,
             'source': source or self.source,

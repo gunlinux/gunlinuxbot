@@ -15,6 +15,7 @@ class QueueMessageSchema(Schema):
     )
 
     @post_load
-    def make(self, data, **kwargs: dict[Any, Any]) -> QueueMessage:
+    def make(self, data: dict[str, Any], **kwargs: Any) -> QueueMessage:
+        """Create a QueueMessage instance from deserialized data."""
         _ = kwargs
         return QueueMessage(**data)

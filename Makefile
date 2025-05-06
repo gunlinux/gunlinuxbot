@@ -28,7 +28,7 @@ fix:  ## Fix lint errors
 
 .PHONY: cov
 cov: ## Run tests with coverage
-	uv run pytest
+	uv run pytest --cov=gunlinuxbot --cov-report=term-missing tests/
 
 .PHONY: build
 build:  ## Build package

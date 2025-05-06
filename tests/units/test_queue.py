@@ -89,3 +89,34 @@ async def test_retry(mock_redis):
             await queue.push(data_from_queue_1)
     assert await queue.llen() == 0
     assert await queue.pop() is None
+
+
+async def test_queue_walk(mock_redis):
+    queue = Queue(name='test_queue', connection=mock_redis)
+    from gunlinuxbot.models.myqueue import QueueMessageStatus
+
+    payload1 = {
+        'event': 'Test event 1',
+        'data': json.dumps({'kinda': 1}),
+        'source': 'test_queue',
+        'retry': 0,
+        'status': QueueMessageStatus.WAITING,
+    }
+    payload2 = {
+        'event': 'Test event 2',
+        'data': json.dumps({'kinda': 2}),
+        'source': 'test_queue',
+        'retry': 0,
+        'status': QueueMessageStatus.WAITING,
+    }
+    message_one: QueueMessage = QueueMessageSchema().load(payload1)
+    message_two: QueueMessage = QueueMessageSchema().load(payload2)
+
+    await queue.push(message_one)
+    await queue.push(message_two)
+
+    items = await queue.walk()
+    expected_items_count = 2
+    assert len(items) == expected_items_count
+    assert json.loads(items[0])['event'] == 'Test event 1'
+    assert json.loads(items[1])['event'] == 'Test event 2'

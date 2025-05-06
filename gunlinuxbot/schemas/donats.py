@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields, post_load, EXCLUDE
+from typing import Any
 
 from gunlinuxbot.models.donats import AlertEvent, DonationTypes, BillingSystem
 
@@ -20,6 +21,7 @@ class AlertEventSchema(Schema):
         unknown = EXCLUDE
 
     @post_load
-    def make(self, data, **kwargs) -> AlertEvent:
+    def make(self, data: dict[str, Any], **kwargs: Any) -> AlertEvent:
+        """Create an AlertEvent instance from deserialized data."""
         _ = kwargs
         return AlertEvent(**data)

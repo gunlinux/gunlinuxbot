@@ -1,12 +1,13 @@
-from dataclasses import dataclass, asdict
-from enum import Enum, auto
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 
 class QueueMessageStatus(Enum):
-    WAITING = auto()
-    PROCESSING = auto()
-    FINISHED = auto()
-    DROPED = auto()
+    WAITING = 'waiting'
+    PROCESSING = 'processing'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
 
 
 @dataclass
@@ -17,14 +18,12 @@ class QueueMessage:
     retry: int = 0
     status: QueueMessageStatus = QueueMessageStatus.WAITING
 
-    def to_serializable_dict(self):
+    def to_serializable_dict(self) -> dict[str, Any]:
+        """Convert the message to a serializable dictionary."""
         return {
-            field: (value.value if isinstance(value, Enum) else value)
-            for field, value in asdict(self).items()
+            'event': self.event,
+            'data': self.data,
+            'source': self.source,
+            'retry': self.retry,
+            'status': self.status.value,
         }
-
-
-if __name__ == '__main__':
-    queue_message = QueueMessage(event='test_event', data='{"data": "some_data"}')
-    queue_message_dict = queue_message.to_serializable_dict()
-    print(queue_message_dict)
