@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, cast, TypeVar, TypeAlias
+from typing import TYPE_CHECKING, Any, cast
 import json
 
 from redis import asyncio as aioredis
@@ -17,9 +17,6 @@ from redis.exceptions import (
 from .utils import logger_setup
 
 logger = logger_setup('gunlinuxbot.myqueue')
-
-T = TypeVar('T')
-RedisData: TypeAlias = str | bytes | None
 
 
 class Connection(ABC):
@@ -41,7 +38,7 @@ class Connection(ABC):
 
 class RedisConnection(Connection):
     def __init__(self, url: str) -> None:
-        self.url: str = url
+        self.url = url
         self._redis: Redis = aioredis.from_url(self.url)
 
     async def __adel__(self) -> None:
@@ -62,13 +59,13 @@ class RedisConnection(Connection):
             logger.critical('cant pop no redis conn')
             return ''
         try:
-            temp: RedisData = await self._redis.lpop(name)
+            temp = await self._redis.lpop(name)
             if temp and isinstance(temp, bytes):
                 return temp.decode('utf-8')
-            return str(temp) if temp is not None else ''
         except (RedisConnectionError, RedisTimeoutError) as e:
             logger.critical('cant pop from redis conn, %s', e)
             return ''
+        return temp
 
     async def llen(self, name: str) -> int:
         if self._redis is None:
@@ -93,7 +90,6 @@ class RedisConnection(Connection):
     async def clean(self, name: str) -> None:
         if self._redis is None:
             logger.critical('cant llen no redis conn')
-            return
         try:
             await self._redis.delete(name)
         except (ConnectionError, TimeoutError):
@@ -116,7 +112,7 @@ class Queue:
             logger.critical('message retried more than %s %s', self.max_retry, data)
             return
 
-        queue_message_dict: dict[str, Any] = data.to_serializable_dict()
+        queue_message_dict = data.to_serializable_dict()
         await self.connection.push(self.name, json.dumps(queue_message_dict))
 
     async def pop(self) -> QueueMessage | None:

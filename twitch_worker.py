@@ -2,25 +2,19 @@ import asyncio
 import json
 import os
 import random
-from collections.abc import Callable, Mapping, Awaitable
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import cast, Any, TYPE_CHECKING
+from typing import cast
 
-from gunlinuxbot.handlers import (
-    Command,
-    Event,
-    EventHandler,
-    TwitchEventHandler,
-    CommandRunner,
-)
-from gunlinuxbot.models.myqueue import QueueMessage
+from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
+from gunlinuxbot.models.twitch import TwitchMessage
 from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
 
-if TYPE_CHECKING:
-    from gunlinuxbot.models.twitch import TwitchMessage
+from gunlinuxbot.models.myqueue import QueueMessage
+
 
 logger = logger_setup('twitch_worker')
 
@@ -38,11 +32,10 @@ async def process(handler: EventHandler, queue_message: QueueMessage) -> None:
 
 
 async def auf(
-    event: Event,
-    post: Awaitable[Any] | Callable | None = None,
+    event: TwitchMessage,
+    post: Callable | None = None,
     data: dict[str, str] | None = None,
-) -> None:
-    event = cast('TwitchMessage', event)
+) -> str:
     logger.debug('auf %s ', data)
     symbols = ['AWOO', 'AUF', 'gunlinAuf']
     symbols_len = random.randint(6, 12)  #  noqa: S311
@@ -52,37 +45,28 @@ async def auf(
     temp = f'@{event.author} Воистину {auf_str}'
 
     if post:
-        if isinstance(post, Awaitable):
-            await post
-        else:
-            await post(temp)
+        return await post(temp)
+    return temp
 
 
 async def command_raw_handler(
     event: Event,
-    post: Awaitable[Any] | Callable | None = None,
+    post: Callable | None = None,
     data: dict[str, str] | None = None,
-) -> None:
-    event = cast('TwitchMessage', event)
+) -> str:
     logger.debug('RAW command handler %s %s', data, event)
 
     if post and data is not None:
-        if isinstance(post, Awaitable):
-            await post
-        else:
-            await post(data['text'])
+        return await post(data['text'])
+    return ''
 
 
-def reload_command(command_dir, twitch_handler: TwitchEventHandler) -> CommandRunner:
-    async def reload_command_inner(
-        event: Event,  # noqa: ARG001
-        post: Awaitable[Any] | Callable | None = None,  # noqa: ARG001
-        data: dict[str, str] | None = None,  # noqa: ARG001
-    ) -> None:
+def reload_command(command_dir, twitch_handler: TwitchEventHandler) -> Callable:
+    async def reload_command_inner(*args, **kwargs):
+        _, _ = args, kwargs
         nonlocal twitch_handler, command_dir
         get_commands_from_dir(command_dir, twitch_handler)
 
-    reload_command_inner.__name__ = 'reload_command_inner'
     return reload_command_inner
 
 
