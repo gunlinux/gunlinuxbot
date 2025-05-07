@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 from gunlinuxbot.models.event import Event
 
 
@@ -25,4 +24,4 @@ class TwitchMessage(Event):
     id: str
     channel: str
     author: str
-    timestamp: datetime
+    timestamp: str

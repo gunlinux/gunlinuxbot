@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Callable, Awaitable
+from collections.abc import Callable
 
 from twitchio import Message
 from twitchio.ext import commands
@@ -10,17 +10,15 @@ logger = logger_setup('twitch.twitchbot')
 
 
 class TwitchBot(commands.Bot):
-    """Base class for Twitch bot functionality."""
-
     def __init__(
         self,
         access_token: str,
         default_channel: str = 'gunlinux',
         loop: asyncio.AbstractEventLoop | None = None,
-        handler: Callable[[Message], Awaitable[None]] | None = None,
+        handler: Callable | None = None,
     ) -> None:
         self.channels: list[str] = [default_channel]
-        self.handler_function: Callable[[Message], Awaitable[None]] | None = handler
+        self.handler_function: Callable | None = handler
         super().__init__(
             token=access_token,
             prefix='?',
@@ -54,7 +52,6 @@ class TwitchBotGetter(TwitchBot):
         # For now we just want to ignore them...
         if message.echo:
             logger.debug('echo ignore')
-            return
 
         if message and message.author and message.author.name and self.handler_function:
             await self.handler_function(message)

@@ -3,7 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast, TypeVar, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, cast
 
 from gunlinuxbot.models.donats import AlertEvent, DonationTypes
 from gunlinuxbot.models.event import Event
@@ -16,20 +16,6 @@ if TYPE_CHECKING:
 
 logger = logger_setup('gunlinuxbot.handlers')
 logger.setLevel(logging.DEBUG)
-
-T = TypeVar('T', bound=Event)
-
-
-@runtime_checkable
-class CommandRunner(Protocol):
-    __name__: str
-
-    async def __call__(
-        self,
-        event: Event,
-        post: Awaitable[Any] | Callable | None = None,
-        data: dict[str, str] | None = None,
-    ) -> None: ...
 
 
 class DonationAlertTypes(Enum):
@@ -44,13 +30,13 @@ class Command:
         name: str,
         event_handler: 'EventHandler',
         data: dict[str, str] | None = None,
-        real_runner: CommandRunner | None = None,
+        real_runner: Callable | None = None,
     ) -> None:
         self.name: str = name
         self.event_handler: EventHandler = event_handler
         self.event_handler.register(self.name, self)
-        self.real_runner: CommandRunner | None = real_runner
-        self.data: dict[str, str] | None = data
+        self.real_runner = real_runner
+        self.data = data
 
     async def run(
         self, event: Event, post: Awaitable[Any] | Callable | None = None
@@ -131,7 +117,7 @@ class TwitchEventHandler(EventHandler):
 
 
 class DonatEventHandler(EventHandler):
-    async def send_donate(self, event: AlertEvent) -> None:
+    async def send_donate(self, event: AlertEvent):
         message = {
             'value': int(event.amount_formatted),
             'name': event.username,
@@ -145,8 +131,8 @@ class DonatEventHandler(EventHandler):
         if isinstance(event.alert_type, DonationTypes):
             alert_type = int(event.alert_type.value)
         else:
-            alert_type = int(cast('str', event.alert_type))
-        event = cast('AlertEvent', event)
+            alert_type: int = int(cast('str', event.alert_type))
+        event: AlertEvent = cast('AlertEvent', event)
         if alert_type == DonationAlertTypes.DONATION.value:
             await self._donation(event)
             return
