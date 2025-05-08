@@ -1,4 +1,5 @@
 from typing import Any, TypeAlias
+from datetime import datetime
 from marshmallow import Schema, fields, post_load, pre_load
 
 from twitchio.message import Message
