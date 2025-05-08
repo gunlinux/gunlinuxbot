@@ -24,7 +24,7 @@ class TwitchMessageSchema(Schema):
     id = fields.Str()
     channel = fields.Str()
     author = fields.Str()
-    timestamp = fields.Str()
+    timestamp = fields.DateTime()
 
     @post_load
     def make(self, data, **kwargs: dict[Any, Any]) -> TwitchMessage:
@@ -35,11 +35,15 @@ class TwitchMessageSchema(Schema):
     def load_from_message(self, data: Message | dict | None, **kwargs) -> dict:
         _ = kwargs
         if isinstance(data, dict):
+            if isinstance(data.get('timestamp'), datetime):
+                data['timestamp'] = data['timestamp'].isoformat()
             return data
         if data is None:
             return {}
         return {
-            'timestamp': str(data.timestamp),
+            'timestamp': data.timestamp.isoformat()
+            if isinstance(data.timestamp, datetime)
+            else data.timestamp,
             'content': data.content,
             'author': data.author.name,
             'channel': data.channel.name,
