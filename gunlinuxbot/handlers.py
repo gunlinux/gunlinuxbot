@@ -3,7 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, Protocol, runtime_checkable
 
 from gunlinuxbot.models.donats import AlertEvent, DonationTypes
 from gunlinuxbot.models.event import Event
@@ -16,6 +16,18 @@ if TYPE_CHECKING:
 
 logger = logger_setup('gunlinuxbot.handlers')
 logger.setLevel(logging.DEBUG)
+
+
+@runtime_checkable
+class CommandRunner(Protocol):
+    __name__: str
+
+    async def __call__(
+        self,
+        event: Event,
+        post: Awaitable[Any] | Callable | None = None,
+        data: dict[str, str] | None = None,
+    ) -> None: ...
 
 
 class DonationAlertTypes(Enum):

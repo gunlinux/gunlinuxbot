@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Any, TypeAlias
 from marshmallow import Schema, fields, post_load, pre_load
 
 from twitchio.message import Message
 from gunlinuxbot.models.twitch import SendMessage, TwitchMessage
+
+MessageData: TypeAlias = Message | dict[str, Any] | None
 
 
 class SendMessageSchema(Schema):
