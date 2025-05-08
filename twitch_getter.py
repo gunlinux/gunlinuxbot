@@ -3,7 +3,6 @@ import logging
 import os
 import json
 from collections.abc import Callable, Coroutine, Mapping
-from dataclasses import asdict
 from typing import Any, cast, TYPE_CHECKING
 
 from gunlinuxbot.myqueue import Queue, RedisConnection
@@ -38,7 +37,7 @@ async def init_process(
             QueueMessageSchema().load(
                 {
                     'event': 'twitch_message',
-                    'data': json.dumps(asdict(twitch_message)),
+                    'data': json.dumps(twitch_message.to_serializable_dict()),
                 },
             ),
         )

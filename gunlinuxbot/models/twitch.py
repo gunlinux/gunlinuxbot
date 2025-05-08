@@ -1,4 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any
+
 from gunlinuxbot.models.event import Event
 
 
@@ -24,4 +27,9 @@ class TwitchMessage(Event):
     id: str
     channel: str
     author: str
-    timestamp: str
+    timestamp: datetime
+
+    def to_serializable_dict(self) -> dict[str, Any]:
+        temp_dict = asdict(self)
+        temp_dict['timestamp'] = self.timestamp.isoformat()
+        return temp_dict

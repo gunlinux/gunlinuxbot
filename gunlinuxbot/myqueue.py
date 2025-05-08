@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, TypeAlias
 import json
 
 from redis import asyncio as aioredis
@@ -17,6 +17,8 @@ from redis.exceptions import (
 from .utils import logger_setup
 
 logger = logger_setup('gunlinuxbot.myqueue')
+
+RedisData: TypeAlias = str | bytes | None
 
 
 class Connection(ABC):
