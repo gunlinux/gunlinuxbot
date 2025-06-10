@@ -8,7 +8,7 @@ from gunlinuxbot.myqueue import Queue, RedisConnection
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.models.donats import AlertEvent
 from gunlinuxbot.schemas.donats import AlertEventSchema
-from local_events.commands import pay_commands
+from local_events.commands import pay_commands  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
 
 if typing.TYPE_CHECKING:
     from gunlinuxbot.models.myqueue import QueueMessage
