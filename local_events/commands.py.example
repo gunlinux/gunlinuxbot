@@ -1,0 +1,13 @@
+pay_commands: dict[str, dict[str, str|int]] = {
+    '#mouseoff': {
+        'price': 50,
+        'command': 'mouseoff.py',
+    },
+    '#copy': {
+        'price': 50,
+        'command': 'copyoff.py',
+    },
+}
+
+
+

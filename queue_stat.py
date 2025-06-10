@@ -8,12 +8,13 @@ from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup(__name__)
 
+queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats', 'local_events']
+
 
 async def get_queues_stat() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
     queues = [Queue(name=name, connection=redis_connection) for name in queues_names]
 
     for queue in queues:
@@ -24,7 +25,6 @@ async def queues_clear() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats']
     queues = [Queue(name=name, connection=redis_connection) for name in queues_names]
 
     for queue in queues:

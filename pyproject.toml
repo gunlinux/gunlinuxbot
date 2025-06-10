@@ -9,10 +9,12 @@ dependencies = [
     "marshmallow>=3.26.1",
     "marshmallow-enum>=1.5.1",
     "obs-websocket-py>=1.0",
+    "pyright>=1.1.398",
     "python-dotenv>=1.0.1",
     "python-socketio>=5.11.4",
     "redis>=5.2.0",
     "sentry-sdk==0.10.2",
+    "sqlmodel>=0.0.24",
     "twitchio>=2.10.0",
 ]
 
