@@ -3,7 +3,7 @@ from datetime import datetime
 from marshmallow import Schema, fields, post_load, pre_load
 
 from twitchio.message import Message
-from gunlinuxbot.models.twitch import SendMessage, TwitchMessage
+from twitch.models import SendMessage, TwitchMessage
 
 MessageData: TypeAlias = Message | dict[str, Any] | None
 
@@ -13,7 +13,7 @@ class SendMessageSchema(Schema):
     message = fields.Str(required=True)
 
     @post_load
-    def make(self, data, **kwargs: dict[Any, Any]) -> SendMessage:
+    def make(self, data: dict[str, Any], **kwargs: dict[Any, Any]) -> SendMessage:
         _ = kwargs
         return SendMessage(**data)
 
@@ -28,13 +28,14 @@ class TwitchMessageSchema(Schema):
     timestamp = fields.DateTime()
 
     @post_load
-    def make(self, data, **kwargs: dict[Any, Any]) -> TwitchMessage:
+    def make(self, data: dict[str, Any], **kwargs: dict[Any, Any]) -> TwitchMessage:
         _ = kwargs
         return TwitchMessage(**data)
 
     @pre_load
-    def load_from_message(self, data: Message | dict | None, **kwargs) -> dict:
-        _ = kwargs
+    def load_from_message(
+        self, data: Message | dict[str, Any] | None, **_
+    ) -> dict[str, Any]:
         if isinstance(data, dict):
             if isinstance(data.get('timestamp'), datetime):
                 data['timestamp'] = data['timestamp'].isoformat()
@@ -42,9 +43,7 @@ class TwitchMessageSchema(Schema):
         if data is None:
             return {}
         return {
-            'timestamp': data.timestamp.isoformat()
-            if isinstance(data.timestamp, datetime)
-            else data.timestamp,
+            'timestamp': data.timestamp.isoformat(),
             'content': data.content,
             'author': data.author.name,
             'channel': data.channel.name,

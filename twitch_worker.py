@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import cast
 import typing
 
-from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
-from gunlinuxbot.models.twitch import TwitchMessage
+from gunlinuxbot.handlers import Command, Event, EventHandler
+from twitch.handlers import TwitchEventHandler
+from twitch.models import TwitchMessage
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
-from gunlinuxbot.schemas.twitch import TwitchMessageSchema
+from twitch.schemas import TwitchMessageSchema
 
 from requeue.models import QueueMessage
 
