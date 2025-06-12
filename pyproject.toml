@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "coredis>=4.22.0",
     "donationalertsapi>=2.0.2",
     "marshmallow>=3.26.1",
     "marshmallow-enum>=1.5.1",
@@ -12,7 +13,6 @@ dependencies = [
     "pyright>=1.1.398",
     "python-dotenv>=1.0.1",
     "python-socketio>=5.11.4",
-    "redis>=5.2.0",
     "sentry-sdk==0.10.2",
     "sqlmodel>=0.0.24",
     "twitchio>=2.10.0",
@@ -22,7 +22,6 @@ dependencies = [
 dev = [
     "mypy>=1.13.0",
     "ruff>=0.7.4",
-    "types-redis>=4.6.0.20241004",
     "pytest>=8.3.3",
     "pytest-asyncio>=0.25.3",
     "pyright>=1.1.398",

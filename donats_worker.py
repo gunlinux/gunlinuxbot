@@ -5,9 +5,10 @@ import signal
 from typing import cast, TYPE_CHECKING
 
 from gunlinuxbot.handlers import DonatEventHandler, Event, EventHandler
-from gunlinuxbot.models.myqueue import QueueMessage
+from requeue.models import QueueMessage
 from gunlinuxbot.schemas.donats import AlertEventSchema
-from gunlinuxbot.myqueue import Queue, RedisConnection
+from requeue.requeue import Queue
+from requeue.rredis import RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 
@@ -35,36 +36,35 @@ async def test_event(event: Event) -> str:
 
 async def main() -> None:
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection = RedisConnection(redis_url)
+    async with RedisConnection(redis_url) as redis_connection:
+        queue = Queue(name='da_events', connection=redis_connection)
+        sender = Sender(queue_name='twitch_out', connection=redis_connection)
+        donat_handler: EventHandler = DonatEventHandler(
+            sender=sender,
+            admin='gunlinux',
+        )
 
-    queue = Queue(name='da_events', connection=redis_connection)
-    sender = Sender(queue_name='twitch_out', connection=redis_connection)
-    donat_handler: EventHandler = DonatEventHandler(
-        sender=sender,
-        admin='gunlinux',
-    )
+        # Setup graceful shutdown
+        stop_event = asyncio.Event()
 
-    # Setup graceful shutdown
-    stop_event = asyncio.Event()
+        def signal_handler(sig: int, _frame: object) -> None:
+            logger.info('Received shutdown signal: %s', signal.strsignal(sig))
+            logger.info('Stopping gracefully...')
+            stop_event.set()
 
-    def signal_handler(sig: int, _frame: object) -> None:
-        logger.info('Received shutdown signal: %s', signal.strsignal(sig))
-        logger.info('Stopping gracefully...')
-        stop_event.set()
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
 
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-    try:
-        while not stop_event.is_set():
-            logger.debug('Checking queue for new events')
-            new_event: QueueMessage | None = await queue.pop()
-            if new_event is not None:
-                logger.debug('Found new event to process')
-                await process(handler=donat_handler, message=new_event)
-            await asyncio.sleep(1)
-    finally:
-        logger.info('Donats worker service is shutting down')
+        try:
+            while not stop_event.is_set():
+                logger.debug('Checking queue for new events')
+                new_event: QueueMessage | None = await queue.pop()
+                if new_event is not None:
+                    logger.debug('Found new event to process')
+                    await process(handler=donat_handler, message=new_event)
+                await asyncio.sleep(1)
+        finally:
+            logger.info('Donats worker service is shutting down')
 
 
 if __name__ == '__main__':

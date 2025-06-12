@@ -7,12 +7,13 @@ from socketio import exceptions as socketio_exceptions
 
 from gunlinuxbot.donats.donats import DonatApi
 from gunlinuxbot.handlers import Event
-from gunlinuxbot.myqueue import Queue, RedisConnection
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
+from requeue.requeue import Queue
+from requeue.rredis import RedisConnection
+from requeue.schemas import QueueMessageSchema
 from gunlinuxbot.utils import logger_setup
 
 if typing.TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+    from requeue.models import QueueMessage
     from gunlinuxbot.models.donats import AlertEvent
 
 logger = logger_setup('donats_getter')
@@ -54,18 +55,18 @@ async def main() -> None:
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
     logger.info('Initializing donats getter service')
     logger.info('Redis URL: %s', redis_url)
-    redis_connection = RedisConnection(redis_url)
-    queue = Queue(name='da_events', connection=redis_connection)
+    async with RedisConnection(redis_url) as redis_connection:
+        queue = Queue(name='da_events', connection=redis_connection)
 
-    handler = await init_process(queue)
-    bot = DonatApi(token=access_token, handler=handler)
-    try:
-        logger.info('Starting donats bot')
-        while True:
-            await bot.run()
-    except socketio_exceptions.ConnectionError:
-        logger.exception('Connection error occurred')
-        logger.warning('Connection error we are reconnecting')
+        handler = await init_process(queue)
+        bot = DonatApi(token=access_token, handler=handler)
+        try:
+            logger.info('Starting donats bot')
+            while True:
+                await bot.run()
+        except socketio_exceptions.ConnectionError:
+            logger.exception('Connection error occurred')
+            logger.warning('Connection error we are reconnecting')
 
 
 if __name__ == '__main__':

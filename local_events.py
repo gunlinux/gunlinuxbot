@@ -4,14 +4,15 @@ import os
 import typing
 from asyncio.subprocess import PIPE
 
-from gunlinuxbot.myqueue import Queue, RedisConnection
+from requeue.requeue import Queue
+from requeue.rredis import RedisConnection
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.models.donats import AlertEvent
 from gunlinuxbot.schemas.donats import AlertEventSchema
 from local_events.commands import pay_commands  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
 
 if typing.TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+    from requeue.models import QueueMessage
 
 logger = logger_setup('local_events')
 
@@ -108,14 +109,14 @@ class QueueConsumer:
 
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection: RedisConnection = RedisConnection(redis_url)
-    queue: Queue = Queue(name='local_events', connection=redis_connection)
-    commmand_config: CommandConfig = CommandConfig(commands=pay_commands)
-    processor: CommandProcessor = CommandProcessor()
+    async with RedisConnection(redis_url) as redis_connection:
+        queue: Queue = Queue(name='local_events', connection=redis_connection)
+        commmand_config: CommandConfig = CommandConfig(commands=pay_commands)
+        processor: CommandProcessor = CommandProcessor()
 
-    await QueueConsumer(
-        queue=queue, commmand_config=commmand_config, processor=processor
-    ).run()
+        await QueueConsumer(
+            queue=queue, commmand_config=commmand_config, processor=processor
+        ).run()
 
 
 if __name__ == '__main__':

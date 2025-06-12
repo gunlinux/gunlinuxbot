@@ -29,8 +29,8 @@ class DonatApi:
         self.token: str = token
         self.handler: Callable[[Event], Coroutine[Any, Any, None]] = handler
 
-        @self.sio.on('connect')
-        async def on_connect() -> None:
+        @self.sio.on('connect')  # pyright: ignore[reportOptionalCall,reportUntypedFunctionDecorator]
+        async def on_connect() -> None:  # pyright: ignore[reportUnusedFunction]
             await self.sio.emit(
                 'add-user',
                 {'token': self.token, 'type': 'alert_widget'},

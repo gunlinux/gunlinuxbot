@@ -1,15 +1,18 @@
 from dataclasses import asdict
 import json
 from typing import TYPE_CHECKING
+import typing
 from gunlinuxbot.schemas.donats import AlertEventSchema
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
-from gunlinuxbot.myqueue import Queue
+from requeue.schemas import QueueMessageSchema
+from requeue.rredis import Connection
+from requeue.requeue import Queue
 
 if TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+    from gunlinuxbot.models.donats import AlertEvent
+    from requeue.models import QueueMessage
 
 
-async def test_donat_route(mock_redis):
+async def test_donat_route(mock_redis: Connection):
     raw_event = {
         'id': 162020502,
         'alert_type': '1',
@@ -32,16 +35,19 @@ async def test_donat_route(mock_redis):
         'preset_id': 0,
     }
 
-    message = AlertEventSchema().load(raw_event)
+    message: AlertEvent = typing.cast('AlertEvent', AlertEventSchema().load(raw_event))
     message_dict = asdict(message)
-    message_dict.get('id', None)
+    _ = message_dict.get('id', None)
     message_dict['alert_type'] = '1'
     message_dict['billing_system'] = 'fake'
     payload = {
         'event': 'da_message',
         'data': json.dumps(message_dict),
     }
-    queue_message: QueueMessage = QueueMessageSchema().load(payload)
-    queue = Queue(name='test_queue', connection=mock_redis)
-    await queue.push(queue_message)
-    assert await queue.pop()
+    queue_message: QueueMessage = typing.cast(
+        'QueueMessage', QueueMessageSchema().load(payload)
+    )
+    async with mock_redis as connection:
+        queue = Queue(name='test_queue', connection=connection)
+        await queue.push(queue_message)
+        assert await queue.pop()

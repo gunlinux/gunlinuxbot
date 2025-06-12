@@ -6,10 +6,11 @@ import os
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError
 
-from gunlinuxbot.myqueue import Queue, RedisConnection
+from requeue.requeue import Queue
+from requeue.rredis import RedisConnection
 from gunlinuxbot.utils import logger_setup
 
-from gunlinuxbot.models.myqueue import QueueMessage
+from requeue.models import QueueMessage
 
 logger = logger_setup('twitch_sender')
 
@@ -35,8 +36,8 @@ async def process(data: QueueMessage) -> None:
 async def sender(queue: Queue) -> None:
     logger.debug('bs sender start')
     while True:
-        new_event = await queue.pop()
-        if new_event:
+        new_event: QueueMessage | None = await queue.pop()
+        if new_event is not None:
             try:
                 await process(new_event)
             except ClientConnectorError:
@@ -46,9 +47,9 @@ async def sender(queue: Queue) -> None:
 
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection: RedisConnection = RedisConnection(redis_url)
-    queue: Queue = Queue(name='bs_donats', connection=redis_connection)
-    await asyncio.gather(sender(queue=queue))
+    async with RedisConnection(redis_url) as redis_connection:
+        queue: Queue = Queue(name='bs_donats', connection=redis_connection)
+        await asyncio.gather(sender(queue=queue))
 
 
 if __name__ == '__main__':
