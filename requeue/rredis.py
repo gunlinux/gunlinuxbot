@@ -60,7 +60,11 @@ class RedisConnection(Connection):
     @override
     async def _connect(self):
         if self._redis is None:
-            self._redis = await Redis.from_url(self.url, decode_responses=True)
+            self._redis = await Redis.from_url(
+                self.url,
+                decode_responses=True,
+                protocol_version=2,
+            )
 
     @override
     async def _close(self):
