@@ -1,8 +1,9 @@
+import typing
+
 from marshmallow import Schema, fields, post_load
 from marshmallow_enum import EnumField
-from typing import Any
 
-from gunlinuxbot.models.myqueue import QueueMessage, QueueMessageStatus
+from requeue.models import QueueMessage, QueueMessageStatus
 
 
 class QueueMessageSchema(Schema):
@@ -15,6 +16,5 @@ class QueueMessageSchema(Schema):
     )
 
     @post_load
-    def make(self, data, **kwargs: dict[Any, Any]) -> QueueMessage:
-        _ = kwargs
+    def make(self, data: dict[str, typing.Any], **_: typing.Any) -> QueueMessage:
         return QueueMessage(**data)

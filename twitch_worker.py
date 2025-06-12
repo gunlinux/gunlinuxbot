@@ -5,15 +5,17 @@ import random
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import cast
+import typing
 
 from gunlinuxbot.handlers import Command, Event, EventHandler, TwitchEventHandler
 from gunlinuxbot.models.twitch import TwitchMessage
-from gunlinuxbot.myqueue import Queue, RedisConnection
+from requeue.requeue import Queue
+from requeue.rredis import RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 from gunlinuxbot.schemas.twitch import TwitchMessageSchema
 
-from gunlinuxbot.models.myqueue import QueueMessage
+from requeue.models import QueueMessage
 
 
 logger = logger_setup('twitch_worker')
@@ -62,7 +64,7 @@ async def command_raw_handler(
 
 
 def reload_command(command_dir, twitch_handler: TwitchEventHandler) -> Callable:
-    async def reload_command_inner(*args, **kwargs):
+    async def reload_command_inner(*args: typing.Any, **kwargs: typing.Any):
         _, _ = args, kwargs
         nonlocal twitch_handler, command_dir
         get_commands_from_dir(command_dir, twitch_handler)
@@ -97,30 +99,30 @@ def get_commands_from_dir(command_dir: str, twitch_handler: TwitchEventHandler) 
 
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection: RedisConnection = RedisConnection(redis_url)
-    queue: Queue = Queue(name='twitch_mssgs', connection=redis_connection)
-    sender = Sender(queue_name='twitch_out', connection=redis_connection)
-    twitch_handler = TwitchEventHandler(
-        sender=sender,
-        admin='gunlinux',
-    )
+    async with RedisConnection(redis_url) as conn:
+        queue: Queue = Queue(name='twitch_mssgs', connection=conn)
+        sender = Sender(queue_name='twitch_out', connection=conn)
+        twitch_handler = TwitchEventHandler(
+            sender=sender,
+            admin='gunlinux',
+        )
 
-    Command('ауф', twitch_handler, real_runner=auf)
-    Command('gunlinAuf', twitch_handler, real_runner=auf)
-    Command('awoo', twitch_handler, real_runner=auf)
-    Command('auf', twitch_handler, real_runner=auf)
+        Command('ауф', twitch_handler, real_runner=auf)
+        Command('gunlinAuf', twitch_handler, real_runner=auf)
+        Command('awoo', twitch_handler, real_runner=auf)
+        Command('auf', twitch_handler, real_runner=auf)
 
-    command_dir = os.environ.get('COMMAND_DIR', './commands/')
-    get_commands_from_dir(command_dir, twitch_handler)
-    reload_command_runner = reload_command(command_dir, twitch_handler)
-    Command('$reload', twitch_handler, real_runner=reload_command_runner)
-    await asyncio.sleep(1)
+        command_dir = os.environ.get('COMMAND_DIR', './commands/')
+        get_commands_from_dir(command_dir, twitch_handler)
+        reload_command_runner = reload_command(command_dir, twitch_handler)
+        Command('$reload', twitch_handler, real_runner=reload_command_runner)
+        await asyncio.sleep(1)
 
-    while True:
-        new_event: QueueMessage | None = await queue.pop()
-        if new_event is not None:
-            await process(handler=twitch_handler, queue_message=new_event)
-        await asyncio.sleep(0.1)
+        while True:
+            new_event: QueueMessage | None = await queue.pop()
+            if new_event is not None:
+                await process(handler=twitch_handler, queue_message=new_event)
+            await asyncio.sleep(0.1)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 from enum import Enum, auto
+import typing
 
 
 class QueueMessageStatus(Enum):
@@ -17,7 +18,7 @@ class QueueMessage:
     retry: int = 0
     status: QueueMessageStatus = QueueMessageStatus.WAITING
 
-    def to_serializable_dict(self):
+    def to_serializable_dict(self) -> dict[str, typing.Any]:
         return {
             field: (value.value if isinstance(value, Enum) else value)
             for field, value in asdict(self).items()

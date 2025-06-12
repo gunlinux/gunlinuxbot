@@ -1,14 +1,14 @@
 from typing import cast, TYPE_CHECKING
 
-
 from abc import ABC, abstractmethod
 
-from .myqueue import Connection, Queue
+from requeue.requeue import Queue
+from requeue.rredis import Connection
 from .utils import logger_setup
-from gunlinuxbot.schemas.myqueue import QueueMessageSchema
+from requeue.schemas import QueueMessageSchema
 
 if TYPE_CHECKING:
-    from gunlinuxbot.models.myqueue import QueueMessage
+    from requeue.models import QueueMessage
 
 logger = logger_setup('gunlinuxbot.sender')
 
@@ -38,7 +38,7 @@ class Sender(SenderAbc):
         connection: Connection,
         source: str = '',
     ) -> None:
-        self.connection = connection
+        self.connection: Connection = connection
         self.queue = Queue(name=queue_name, connection=connection)
         self.source = source
 
@@ -69,7 +69,7 @@ class DummySender(SenderAbc):
         connection: Connection,
         source: str = '',
     ) -> None:
-        self.connection = connection
+        self.connection: Connection = connection
         self.queue_name = queue_name
         self.source = source
 

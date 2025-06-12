@@ -12,7 +12,7 @@ from gunlinuxbot.models.twitch import TwitchMessage
 from .utils import logger_setup
 
 if TYPE_CHECKING:
-    from .sender import Sender
+    from gunlinuxbot.sender import SenderAbc
 
 logger = logger_setup('gunlinuxbot.handlers')
 logger.setLevel(logging.DEBUG)
@@ -64,9 +64,9 @@ class Command:
 
 
 class EventHandler(ABC):
-    def __init__(self, sender: 'Sender', admin: str | None) -> None:
+    def __init__(self, sender: 'SenderAbc', admin: str | None) -> None:
         self.commands: dict[str, Command] = {}
-        self.sender: Sender = sender
+        self.sender: SenderAbc = sender
         self.admin = admin
 
     @abstractmethod

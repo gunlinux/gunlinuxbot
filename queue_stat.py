@@ -3,7 +3,8 @@ import asyncio
 import os
 import sys
 
-from gunlinuxbot.myqueue import Queue, RedisConnection
+from requeue.requeue import Queue
+from requeue.rredis import RedisConnection
 from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup(__name__)
@@ -13,23 +14,27 @@ queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats', 'local_e
 
 async def get_queues_stat() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues = [Queue(name=name, connection=redis_connection) for name in queues_names]
+    async with RedisConnection(redis_url) as redis_connection:
+        queues = [
+            Queue(name=name, connection=redis_connection) for name in queues_names
+        ]
 
-    for queue in queues:
-        logger.info('queue: %s (%s)', queue.name, await queue.llen())
+        for queue in queues:
+            logger.info('queue: %s (%s)', queue.name, await queue.llen())
 
 
 async def queues_clear() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
-    redis_connection: RedisConnection = RedisConnection(redis_url)
 
-    queues = [Queue(name=name, connection=redis_connection) for name in queues_names]
+    async with RedisConnection(redis_url) as redis_connection:
+        queues = [
+            Queue(name=name, connection=redis_connection) for name in queues_names
+        ]
 
-    for queue in queues:
-        logger.info('clearing queue: %s', queue.name)
-        await queue.clean()
+        for queue in queues:
+            logger.info('clearing queue: %s', queue.name)
+            await queue.clean()
 
 
 def main() -> None:
