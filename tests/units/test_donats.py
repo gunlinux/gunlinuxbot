@@ -2,13 +2,13 @@ from dataclasses import asdict
 import json
 from typing import TYPE_CHECKING
 import typing
-from gunlinuxbot.schemas.donats import AlertEventSchema
+from donats.schemas import AlertEventSchema
 from requeue.schemas import QueueMessageSchema
 from requeue.rredis import Connection
 from requeue.requeue import Queue
 
 if TYPE_CHECKING:
-    from gunlinuxbot.models.donats import AlertEvent
+    from donats.models import AlertEvent
     from requeue.models import QueueMessage
 
 

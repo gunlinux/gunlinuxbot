@@ -5,6 +5,12 @@ from enum import Enum
 from gunlinuxbot.models.event import Event
 
 
+class DonationAlertTypes(Enum):
+    DONATION = 1
+    CUSTOM_REWARD = 19
+    FOLLOW = 6
+
+
 class DonationTypes(Enum):
     DONATION = '1'
     REWARD = '19'

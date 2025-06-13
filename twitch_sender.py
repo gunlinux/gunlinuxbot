@@ -1,6 +1,7 @@
 import asyncio
 import os
 import logging
+import typing
 
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
@@ -14,20 +15,19 @@ twitchio_logger = logging.getLogger('twitchio')
 twitchio_logger.setLevel(logging.INFO)
 
 
-def process(data: QueueMessage) -> str | None:
-    logger.debug('%s process %s', __name__, data.event)
-    return data.data
+async def init_process(bot: TwitchBotSender) -> typing.Any:
+    async def process(message: QueueMessage) -> None:
+        logger.debug('%s process %s', __name__, message.event)
+        if message.data:
+            await bot.send_message(message.data)
+
+    return process
 
 
 async def sender(bot: TwitchBotSender, queue: Queue) -> None:
     logger.debug('sender start')
-    while True:
-        new_event = await queue.pop()
-        if new_event:
-            mssg = process(new_event)
-            if mssg:
-                await bot.send_message(mssg)
-        await asyncio.sleep(2)
+    process = await init_process(bot)
+    await queue.consumer(process)
 
 
 async def main() -> None:
@@ -38,7 +38,7 @@ async def main() -> None:
 
         event_loop = asyncio.get_running_loop()
         bot = TwitchBotSender(access_token=access_token, loop=event_loop)
-        await asyncio.gather(sender(bot, queue), bot.start())
+        _ = await asyncio.gather(sender(bot, queue), bot.start())
 
 
 if __name__ == '__main__':

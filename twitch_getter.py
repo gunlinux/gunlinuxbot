@@ -8,13 +8,13 @@ from typing import Any, cast, TYPE_CHECKING
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from requeue.schemas import QueueMessageSchema
-from gunlinuxbot.schemas.twitch import TwitchMessageSchema
+from twitch.schemas import TwitchMessageSchema
 from gunlinuxbot.twitch.twitchbot import TwitchBotGetter
 from gunlinuxbot.utils import logger_setup
 
 if TYPE_CHECKING:
     from requeue.models import QueueMessage
-    from gunlinuxbot.models.twitch import TwitchMessage
+    from twitch.models import TwitchMessage
 
 from twitchio.message import Message
 

@@ -7,8 +7,8 @@ import socketio
 from marshmallow.exceptions import ValidationError
 
 from gunlinuxbot.models.event import Event
-from gunlinuxbot.models.donats import AlertEvent
-from gunlinuxbot.schemas.donats import AlertEventSchema
+from donats.models import AlertEvent
+from donats.schemas import AlertEventSchema
 
 logger = logging.getLogger(__name__)
 

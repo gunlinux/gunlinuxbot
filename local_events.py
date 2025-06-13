@@ -7,8 +7,8 @@ from asyncio.subprocess import PIPE
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from gunlinuxbot.utils import logger_setup
-from gunlinuxbot.models.donats import AlertEvent
-from gunlinuxbot.schemas.donats import AlertEventSchema
+from donats.models import AlertEvent
+from donats.schemas import AlertEventSchema
 from local_events.commands import pay_commands  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
 
 if typing.TYPE_CHECKING:

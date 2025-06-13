@@ -2,6 +2,7 @@ import typing
 import json
 import logging
 import asyncio
+from collections.abc import Callable, Awaitable
 
 if typing.TYPE_CHECKING:
     from requeue.rredis import Connection
@@ -39,6 +40,19 @@ class Queue:
         )
         message.status = QueueMessageStatus.PROCESSING
         return message
+
+    async def consumer(
+        self, on_message: Callable[[QueueMessage], Awaitable[QueueMessage | None]]
+    ) -> None:
+        while True:
+            await asyncio.sleep(1)
+            new_event: QueueMessage | None = await self.pop()
+            if new_event is None:
+                continue
+            result = await on_message(new_event)
+            if not result:
+                continue
+            await self.push(result)
 
     async def llen(self) -> int | None:
         return await self.connection.llen(self.name)

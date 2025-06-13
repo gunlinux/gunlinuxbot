@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(name=__name__)
 
-from gunlinuxbot.handlers import DonatEventHandler, EventHandler
+from donats.handlers import DonatEventHandler
 from requeue.requeue import Queue
 from gunlinuxbot.sender import DummySender
 
@@ -20,7 +20,7 @@ async def test_real_events(load_da_events: Queue):
     sender: DummySender = DummySender(
         queue_name='twitch_out', connection=queue.connection
     )
-    donat_handler: EventHandler = DonatEventHandler(
+    donat_handler: DonatEventHandler = DonatEventHandler(
         sender=sender,
         admin='gunlinux',
     )

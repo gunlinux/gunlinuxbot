@@ -5,8 +5,8 @@ import typing
 import json
 from socketio import exceptions as socketio_exceptions
 
-from gunlinuxbot.donats.donats import DonatApi
-from gunlinuxbot.handlers import Event
+from donats.donats import DonatApi
+from gunlinuxbot.models.event import Event
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from requeue.schemas import QueueMessageSchema
@@ -14,7 +14,7 @@ from gunlinuxbot.utils import logger_setup
 
 if typing.TYPE_CHECKING:
     from requeue.models import QueueMessage
-    from gunlinuxbot.models.donats import AlertEvent
+    from donats.models import AlertEvent
 
 logger = logger_setup('donats_getter')
 logger.info('Donats getter service started')
