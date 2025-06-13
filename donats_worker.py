@@ -4,22 +4,23 @@ import os
 import signal
 from typing import cast, TYPE_CHECKING
 
-from gunlinuxbot.handlers import DonatEventHandler, Event, EventHandler
+from gunlinuxbot.models.event import Event
+from donats.handlers import DonatEventHandler
 from requeue.models import QueueMessage
-from gunlinuxbot.schemas.donats import AlertEventSchema
+from donats.schemas import AlertEventSchema
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
 
 if TYPE_CHECKING:
-    from gunlinuxbot.models.donats import AlertEvent
+    from donats.models import AlertEvent
 
 logger = logger_setup('donats_worker')
 logger.info('Donats worker service started')
 
 
-async def process(handler: EventHandler, message: QueueMessage) -> None:
+async def process(handler: DonatEventHandler, message: QueueMessage) -> None:
     logger.debug('Processing new event from queue')
     data_json = json.loads(message.data)
     logger.debug('Received message data: %s', data_json)
@@ -39,7 +40,7 @@ async def main() -> None:
     async with RedisConnection(redis_url) as redis_connection:
         queue = Queue(name='da_events', connection=redis_connection)
         sender = Sender(queue_name='twitch_out', connection=redis_connection)
-        donat_handler: EventHandler = DonatEventHandler(
+        donat_handler: DonatEventHandler = DonatEventHandler(
             sender=sender,
             admin='gunlinux',
         )

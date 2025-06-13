@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, post_load, EXCLUDE
 
-from gunlinuxbot.models.donats import AlertEvent, DonationTypes, BillingSystem
+from donats.models import AlertEvent, DonationTypes, BillingSystem
 
 
 class AlertEventSchema(Schema):
