@@ -20,6 +20,7 @@ async def init_process(bot: TwitchBotSender) -> typing.Any:
         logger.debug('%s process %s', __name__, message.event)
         if message.data:
             await bot.send_message(message.data)
+
     return process
 
 
