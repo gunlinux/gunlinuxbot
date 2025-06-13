@@ -1,8 +1,10 @@
 import logging
 import typing
+import json
 
-
+from requeue.models import QueueMessage
 from twitch.models import TwitchMessage
+from twitch.schemas import TwitchMessageSchema
 from gunlinuxbot.handlers import EventHandler
 from gunlinuxbot.models.event import Event
 
@@ -15,6 +17,20 @@ class TwitchEventHandler(EventHandler):
         event = typing.cast('TwitchMessage', event)
         logger.debug('starting handle_message %s', event.content)
         await self.run_command(event)
+
+    @typing.override
+    async def on_message(self, message: QueueMessage) -> QueueMessage | None:
+        twitch_event: TwitchMessage = typing.cast(
+            'TwitchMessage',
+            TwitchMessageSchema().load(
+                typing.cast('dict[str, typing.Any]', json.loads(message.data)),
+            ),
+        )
+        try:
+            await self.handle_event(twitch_event)
+        except Exception as e:  # noqa: BLE001
+            logger.critical('FAILED TO PROCESS MESSAGE %s %s ', message, e)
+            return message
 
     def is_admin(self, event: TwitchMessage) -> bool:
         if not event or not self.admin:

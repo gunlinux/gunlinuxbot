@@ -5,6 +5,7 @@ from typing import Any, Protocol, runtime_checkable
 import typing
 
 from gunlinuxbot.models.event import Event
+from requeue.models import QueueMessage
 
 from .utils import logger_setup
 
@@ -63,6 +64,9 @@ class EventHandler(ABC):
     @abstractmethod
     async def handle_event(self, event: Event) -> None:
         pass
+
+    @abstractmethod
+    async def on_message(self, message: QueueMessage) -> QueueMessage | None: ...
 
     def register(self, name: str, command: Command) -> None:
         logger.debug('Successfully registered command %s', name)

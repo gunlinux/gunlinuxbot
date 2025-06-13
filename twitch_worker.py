@@ -1,37 +1,19 @@
 import asyncio
-import json
 import os
 import random
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from pathlib import Path
-from typing import cast
 import typing
 
-from gunlinuxbot.handlers import Command, Event, EventHandler
+from gunlinuxbot.handlers import Command, Event
 from twitch.handlers import TwitchEventHandler
 from twitch.models import TwitchMessage
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from gunlinuxbot.sender import Sender
 from gunlinuxbot.utils import logger_setup
-from twitch.schemas import TwitchMessageSchema
-
-from requeue.models import QueueMessage
-
 
 logger = logger_setup('twitch_worker')
-
-
-async def process(handler: EventHandler, queue_message: QueueMessage) -> None:
-    twitch_event: TwitchMessage = cast(
-        'TwitchMessage',
-        TwitchMessageSchema().load(
-            cast('Mapping', json.loads(queue_message.data)),
-        ),
-    )
-    await handler.handle_event(twitch_event)
-    logger.debug('something happened %s', twitch_event)
-    await asyncio.sleep(1)
 
 
 async def auf(
@@ -117,13 +99,7 @@ async def main() -> None:
         get_commands_from_dir(command_dir, twitch_handler)
         reload_command_runner = reload_command(command_dir, twitch_handler)
         Command('$reload', twitch_handler, real_runner=reload_command_runner)
-        await asyncio.sleep(1)
-
-        while True:
-            new_event: QueueMessage | None = await queue.pop()
-            if new_event is not None:
-                await process(handler=twitch_handler, queue_message=new_event)
-            await asyncio.sleep(0.1)
+        await queue.consumer(twitch_handler.on_message)
 
 
 if __name__ == '__main__':
