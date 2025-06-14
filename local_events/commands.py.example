@@ -1,13 +1,12 @@
-pay_commands: dict[str, dict[str, str|int]] = {
-    '#mouseoff': {
+pay_commands: list[dict[str, str | int]] = [
+    {
+        'name': '#mouseoff',
         'price': 50,
-        'command': 'mouseoff.py',
+        'command': 'mouseoff_task.py',
     },
-    '#copy': {
+    {
+        'name': '#copy',
         'price': 50,
         'command': 'copyoff.py',
     },
-}
-
-
-
+]
