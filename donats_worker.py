@@ -1,7 +1,7 @@
 import asyncio
 import os
 
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 from donats.handlers import DonatEventHandler
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection

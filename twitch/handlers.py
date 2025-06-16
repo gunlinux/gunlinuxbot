@@ -6,7 +6,7 @@ from requeue.models import QueueMessage
 from twitch.models import TwitchMessage
 from twitch.schemas import TwitchMessageSchema
 from gunlinuxbot.handlers import EventHandler
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ from typing import Any, cast
 import socketio
 from marshmallow.exceptions import ValidationError
 
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
 

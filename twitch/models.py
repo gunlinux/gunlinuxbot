@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any
 
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 
 
 @dataclass

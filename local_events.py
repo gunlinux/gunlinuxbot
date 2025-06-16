@@ -6,7 +6,7 @@ from asyncio.subprocess import PIPE, Process
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from gunlinuxbot.handlers import EventHandler
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 from gunlinuxbot.utils import logger_setup
 from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
