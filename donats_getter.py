@@ -22,8 +22,10 @@ logger.info('Donats getter service started')
 
 async def init_process(
     queue: Queue,
+    redis_connection: RedisConnection,
 ) -> Callable[[Event], Coroutine[typing.Any, typing.Any, None]]:
     work_queue: Queue = queue
+    events_queue = Queue(name='local_events', connection=redis_connection)
 
     async def process_mssg(message: Event) -> None:
         logger.debug('Received message for processing')
@@ -45,6 +47,7 @@ async def init_process(
         new_message: QueueMessage = typing.cast(
             'QueueMessage', QueueMessageSchema().load(payload)
         )
+        await events_queue.push(new_message)
         await work_queue.push(new_message)
 
     return process_mssg
@@ -58,7 +61,9 @@ async def main() -> None:
     async with RedisConnection(redis_url) as redis_connection:
         queue = Queue(name='da_events', connection=redis_connection)
 
-        handler = await init_process(queue)
+        handler = await init_process(
+            queue, typing.cast('RedisConnection', redis_connection)
+        )
         bot = DonatApi(token=access_token, handler=handler)
         try:
             logger.info('Starting donats bot')

@@ -1,0 +1,13 @@
+[Unit]
+Description=GunLinuxBot Local Events Service
+After=network.target
+
+[Service]
+ExecStart=uv run /home/loki/projects/gunlinuxbot/local_events.py
+WorkingDirectory=/home/loki/projects/gunlinuxbot
+Environment=REDIS_URL=redis://gunlinux.ru/1
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
