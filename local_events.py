@@ -2,17 +2,17 @@ import asyncio
 import json
 import os
 import typing
-from asyncio.subprocess import PIPE
-
+from asyncio.subprocess import PIPE, Process
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
+from gunlinuxbot.handlers import EventHandler
+from gunlinuxbot.models.event import Event
 from gunlinuxbot.utils import logger_setup
 from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
 from local_events.commands import pay_commands  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
 
-if typing.TYPE_CHECKING:
-    from requeue.models import QueueMessage
+from requeue.models import QueueMessage
 
 logger = logger_setup('local_events')
 
@@ -44,18 +44,20 @@ class CommandConfig:
 
 
 class CommandProcessor:
-    def __init__(self, scripts_path='local_events/scripts/'):
+    def __init__(self, scripts_path: str = 'local_events/scripts/'):
         # Define your valid commands and their corresponding scripts
-        self.scripts_path = scripts_path
+        self.scripts_path: str = scripts_path
 
-    async def stream_output(self, process):
+    async def stream_output(self, process: Process):
         while True:
-            chunk = await process.stdout.read(1024)  # Read chunks
+            chunk = (
+                await process.stdout.read(1024) if process.stdout is not None else False
+            )  # Read chunks
             if not chunk:
                 break
             print('STDOUT:', chunk.decode().strip())
 
-    async def execute(self, command):
+    async def execute(self, command: str) -> bool:
         """Execute an external Python script in a subprocess"""
         print('kinda execute: %s', command)
 
@@ -64,11 +66,11 @@ class CommandProcessor:
 
         try:
             # Create subprocess
-            process = await asyncio.create_subprocess_exec(
+            process: Process = await asyncio.create_subprocess_exec(
                 *cmd, stdout=PIPE, stderr=PIPE
             )
             task = asyncio.create_task(self.stream_output(process))
-            return process, task
+            _ = task.result()
 
         except Exception as e:  # noqa: BLE001
             print(f'Error executing script: {e}')
@@ -77,46 +79,58 @@ class CommandProcessor:
             return True
 
 
-class QueueConsumer:
+class QueueConsumer(EventHandler):
     """
     Потребляет сообщения из очереди, экстрактит данный для процесса
     """
 
     def __init__(
         self,
-        queue: Queue,
         processor: CommandProcessor,
-        commmand_config: CommandConfig,
+        command_config: CommandConfig,
         timeout: int = 1,
     ):
-        self.queue: Queue = queue
         self.processor: CommandProcessor = processor
         self.timeout: int = timeout
-        self.commmand_config: CommandConfig = commmand_config
+        self.command_config: CommandConfig = command_config
+        super().__init__(sender=None, admin=None)
 
-    async def run(self):
-        while True:
-            new_event: QueueMessage | None = await self.queue.pop()
-            if not new_event:
-                await asyncio.sleep(self.timeout)
-                continue
-            alert: AlertEvent = typing.cast(
-                'AlertEvent', AlertEventSchema().load(json.loads(new_event.data))
-            )
-            if command := self.commmand_config.find(alert):
-                await self.processor.execute(command)
+    @typing.override
+    async def handle_event(self, event: Event) -> None:
+        event = typing.cast('AlertEvent', event)
+        if command := self.command_config.find(event):
+            print('we found command: %s', command)
+            _ = await self.processor.execute(command)
+
+    @typing.override
+    async def on_message(self, message: QueueMessage) -> QueueMessage | None:
+        alert: AlertEvent = typing.cast(
+            'AlertEvent', AlertEventSchema().load(json.loads(message.data))
+        )
+        await self.handle_event(alert)
+        return
+        try:
+            await self.handle_event(alert)
+        except Exception as e:  # noqa: BLE001
+            logger.critical('cant handle message %s %s', message, e)
+
+    @typing.override
+    async def run_command(self, event: Event) -> None:
+        pass
 
 
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
     async with RedisConnection(redis_url) as redis_connection:
         queue: Queue = Queue(name='local_events', connection=redis_connection)
-        commmand_config: CommandConfig = CommandConfig(commands=pay_commands)
+        command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]
+
         processor: CommandProcessor = CommandProcessor()
 
-        await QueueConsumer(
-            queue=queue, commmand_config=commmand_config, processor=processor
-        ).run()
+        local_events_consumer: QueueConsumer = QueueConsumer(
+            command_config=command_config, processor=processor
+        )
+        await queue.consumer(local_events_consumer.on_message)
 
 
 if __name__ == '__main__':
