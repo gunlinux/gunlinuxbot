@@ -6,7 +6,7 @@ from asyncio.subprocess import PIPE, Process
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from gunlinuxbot.handlers import EventHandler
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 from gunlinuxbot.utils import logger_setup
 from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
@@ -107,8 +107,6 @@ class QueueConsumer(EventHandler):
         alert: AlertEvent = typing.cast(
             'AlertEvent', AlertEventSchema().load(json.loads(message.data))
         )
-        await self.handle_event(alert)
-        return
         try:
             await self.handle_event(alert)
         except Exception as e:  # noqa: BLE001
@@ -120,7 +118,7 @@ class QueueConsumer(EventHandler):
 
 
 async def main() -> None:
-    redis_url: str = os.environ.get('REDIS_URL', 'redis://localhost/1')
+    redis_url: str = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
     async with RedisConnection(redis_url) as redis_connection:
         queue: Queue = Queue(name='local_events', connection=redis_connection)
         command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]

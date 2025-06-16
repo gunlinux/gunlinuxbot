@@ -5,7 +5,7 @@ logger = logging.getLogger(name=__name__)
 
 from donats.handlers import DonatEventHandler
 from requeue.requeue import Queue
-from gunlinuxbot.sender import DummySender
+from sender.sender import DummySender
 
 
 async def process(handler, data):

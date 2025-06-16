@@ -6,7 +6,7 @@ import json
 from socketio import exceptions as socketio_exceptions
 
 from donats.donats import DonatApi
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from requeue.schemas import QueueMessageSchema

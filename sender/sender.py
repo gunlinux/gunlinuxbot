@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 
 from requeue.requeue import Queue
 from requeue.rredis import Connection
-from .utils import logger_setup
 from requeue.schemas import QueueMessageSchema
+
+from gunlinuxbot.utils import logger_setup
 
 if TYPE_CHECKING:
     from requeue.models import QueueMessage

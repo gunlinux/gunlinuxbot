@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from enum import Enum
 
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 
 
 class DonationAlertTypes(Enum):

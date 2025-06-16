@@ -4,12 +4,13 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Protocol, runtime_checkable
 import typing
 
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
+from gunlinuxbot.utils import logger_setup
+
 from requeue.models import QueueMessage
 
-from .utils import logger_setup
 
-from gunlinuxbot.sender import SenderAbc
+from sender.sender import SenderAbc
 
 logger = logger_setup('gunlinuxbot.handlers')
 logger.setLevel(logging.DEBUG)

@@ -9,7 +9,7 @@ from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from requeue.schemas import QueueMessageSchema
 from twitch.schemas import TwitchMessageSchema
-from gunlinuxbot.twitch.twitchbot import TwitchBotGetter
+from twitch.twitchbot import TwitchBotGetter
 from gunlinuxbot.utils import logger_setup
 
 if TYPE_CHECKING:

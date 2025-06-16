@@ -7,7 +7,7 @@ import typing
 from donats.models import AlertEvent, DonationTypes
 from donats.schemas import AlertEventSchema
 from requeue.models import QueueMessage
-from gunlinuxbot.models.event import Event
+from gunlinuxbot.models import Event
 from gunlinuxbot.handlers import EventHandler
 
 from gunlinuxbot.utils import logger_setup
