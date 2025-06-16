@@ -63,7 +63,6 @@ class RedisConnection(Connection):
             self._redis = await Redis.from_url(
                 self.url,
                 decode_responses=True,
-                protocol_version=2,
             )
 
     @override
