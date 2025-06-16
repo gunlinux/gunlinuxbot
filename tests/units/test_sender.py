@@ -1,5 +1,5 @@
 from requeue.requeue import Queue
-from gunlinuxbot.sender import Sender
+from sender.sender import Sender
 from requeue.schemas import QueueMessageSchema
 from requeue.models import QueueMessage
 from requeue.rredis import Connection

@@ -5,7 +5,7 @@ from gunlinuxbot.models.event import Event
 from donats.handlers import DonatEventHandler
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
-from gunlinuxbot.sender import Sender
+from sender.sender import Sender
 from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup('donats_worker')

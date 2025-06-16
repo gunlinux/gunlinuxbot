@@ -9,7 +9,7 @@ from requeue.models import QueueMessage
 
 from .utils import logger_setup
 
-from gunlinuxbot.sender import SenderAbc
+from sender.sender import SenderAbc
 
 logger = logger_setup('gunlinuxbot.handlers')
 logger.setLevel(logging.DEBUG)

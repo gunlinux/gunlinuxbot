@@ -10,7 +10,7 @@ import pytest
 from requeue.schemas import QueueMessageSchema
 from requeue.requeue import Queue
 from requeue.rredis import Connection
-from gunlinuxbot.twitch.twitchbot import TwitchBot
+from twitch.twitchbot import TwitchBot
 
 if typing.TYPE_CHECKING:
     from requeue.models import QueueMessage

@@ -5,7 +5,7 @@ import typing
 
 from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
-from gunlinuxbot.twitch.twitchbot import TwitchBotSender
+from twitch.twitchbot import TwitchBotSender
 from gunlinuxbot.utils import logger_setup
 
 from requeue.models import QueueMessage
