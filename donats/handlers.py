@@ -24,17 +24,6 @@ class DonationAlertTypes(Enum):
 
 
 class DonatEventHandler(EventHandler):
-    async def send_donate(self, event: AlertEvent):
-        message = {
-            'value': int(event.amount_formatted),
-            'name': event.username,
-        }
-        if not self.sender:
-            return
-        await self.sender.send_message(
-            message=json.dumps(message), source='donat_handler', queue_name='bs_donats'
-        )
-
     @typing.override
     async def on_message(self, message: QueueMessage) -> QueueMessage | None:
         logger.debug('Processing new event from queue')
@@ -49,12 +38,11 @@ class DonatEventHandler(EventHandler):
             return message
 
     async def handle_event(self, event: Event) -> None:  # pyright: ignore[reportRedeclaration]
-        event = cast('AlertEvent', event)
+        event: AlertEvent = cast('AlertEvent', event)
         if isinstance(event.alert_type, DonationTypes):
             alert_type = int(event.alert_type.value)
         else:
             alert_type: int = int(cast('str', event.alert_type))
-        event: AlertEvent = cast('AlertEvent', event)
         if alert_type == DonationAlertTypes.DONATION.value:
             await self._donation(event)
             return
@@ -76,7 +64,6 @@ class DonatEventHandler(EventHandler):
             event.username = 'anonym'
         mssg_text = f"""{self.admin} {event.username} пожертвовал
             {event.amount_formatted} {event.currency} | {event.message}"""
-        await self.send_donate(event)
         await self.chat(mssg_text)
 
     async def _follow(self, event: AlertEvent) -> None:

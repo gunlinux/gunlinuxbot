@@ -26,6 +26,7 @@ async def init_process(
 ) -> Callable[[Event], Coroutine[typing.Any, typing.Any, None]]:
     work_queue: Queue = queue
     events_queue = Queue(name='local_events', connection=redis_connection)
+    beer_queue = Queue(name='bs_donats', connection=redis_connection)
 
     async def process_mssg(message: Event) -> None:
         logger.debug('Received message for processing')
@@ -49,6 +50,7 @@ async def init_process(
         )
         await events_queue.push(new_message)
         await work_queue.push(new_message)
+        await beer_queue.push(new_message)
 
     return process_mssg
 

@@ -66,26 +66,3 @@ class Queue:
     @typing.override
     def __str__(self) -> str:
         return f'<Queue {self.name}>'
-
-
-async def main() -> None:
-    from requeue.rredis import RedisConnection
-
-    payload1: dict[str, typing.Any] = {
-        'event': 'Test event 1',
-        'data': json.dumps({'kinda': 1}),
-        'source': 'test_queue',
-        'retry': 0,
-        'status': QueueMessageStatus.WAITING,
-    }
-    message_one: QueueMessage = typing.cast(
-        'QueueMessage', QueueMessageSchema().load(payload1)
-    )
-    async with RedisConnection('redis://localhost/1') as conn:
-        queue: Queue = Queue('myq', connection=conn)
-        await queue.push(message_one)
-        print(queue.pop())
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
