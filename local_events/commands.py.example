@@ -3,10 +3,11 @@ pay_commands: list[dict[str, str | int]] = [
         'name': '#mouseoff',
         'price': 50,
         'command': 'mouseoff_task.py',
+        'type': 'donate',
     },
     {
         'name': '#copy',
         'price': 50,
-        'command': 'copyoff.py',
+        'type': 'twitch',
     },
 ]
