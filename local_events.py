@@ -8,7 +8,7 @@ from requeue.rredis import RedisConnection
 from gunlinuxbot.handlers import EventHandler
 from gunlinuxbot.models import Event
 from gunlinuxbot.utils import logger_setup
-from donats.models import AlertEvent
+from donats.models import AlertEvent, BillingSystem
 from donats.schemas import AlertEventSchema
 from local_events.commands import pay_commands  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
 
@@ -33,13 +33,21 @@ class CommandConfig:
 
     def find(self, alert: AlertEvent) -> str | None:
         for command in self.commands:
+            # donation alerts donate :D
             if (
                 command['name'] in alert.message
-                and self._get_final_amount(alert.amount, alert.currency)
-                > command['price']
+                and self._get_final_amount(alert.amount, alert.currency) > command['price']
+                and command['type'] == 'donate'
+                and alert.billing_system != BillingSystem.TWITCH
             ):
                 return command['command']
-        print('command not fouind', alert)
+            if (
+                alert.billing_system == BillingSystem.TWITCH
+                and command['type'] == 'twitch'
+                and command['name'] == alert.message
+            ):
+                return command['command']
+        print('command not found', alert)
         return None
 
 
