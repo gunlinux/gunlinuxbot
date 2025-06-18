@@ -36,7 +36,8 @@ class CommandConfig:
             # donation alerts donate :D
             if (
                 command['name'] in alert.message
-                and self._get_final_amount(alert.amount, alert.currency) > command['price']
+                and self._get_final_amount(alert.amount, alert.currency)
+                > command['price']
                 and command['type'] == 'donate'
                 and alert.billing_system != BillingSystem.TWITCH
             ):
