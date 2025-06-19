@@ -1,12 +1,12 @@
-from marshmallow import Schema, fields, post_load, EXCLUDE
-
-from donats.models import AlertEvent, DonationTypes, BillingSystem
+import typing
+from marshmallow import Schema, fields, post_load, EXCLUDE, pre_load
+from donats.models import AlertEvent
 
 
 class AlertEventSchema(Schema):
     id = fields.Int(required=True)
-    alert_type = fields.Enum(DonationTypes, by_value=True)
-    billing_system = fields.Enum(BillingSystem, by_value=True)
+    alert_type = fields.Int(required=True)
+    billing_system = fields.Str()
     username = fields.Str()
     amount = fields.Float()
     amount_formatted = fields.Str()
@@ -19,7 +19,15 @@ class AlertEventSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
+    @pre_load
+    def preload(self, data: dict[str, typing.Any], **_) -> dict[str, typing.Any]:
+        data['alert_type'] = (
+            int(data['alert_type'])
+            if isinstance(data['alert_type'], str)
+            else data['alert_type']
+        )
+        return data
+
     @post_load
-    def make(self, data, **kwargs) -> AlertEvent:
-        _ = kwargs
+    def make(self, data: dict[str, typing.Any], **_) -> AlertEvent:
         return AlertEvent(**data)

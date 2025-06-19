@@ -27,6 +27,9 @@ class BeerConsumer:
         alert_event: AlertEvent = typing.cast(
             'AlertEvent', AlertEventSchema().load(json.loads(message.data))
         )
+        if alert_event.billing_system == 'TWITCH':
+            # не учитываем награды за баллы канала
+            return None
         stat_data = self._from_alert_event_to_bs(alert_event)
 
         payload = {
