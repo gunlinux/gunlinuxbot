@@ -4,7 +4,7 @@ from enum import Enum
 from typing import cast, override
 import typing
 
-from donats.models import AlertEvent, DonationTypes
+from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
 from requeue.models import QueueMessage
 from gunlinuxbot.models import Event
@@ -37,21 +37,19 @@ class DonatEventHandler(EventHandler):
             logger.critical('FAILED TO PROCESS MESSAGE %s %s ', message, e)
             return message
 
+    @typing.override
     async def handle_event(self, event: Event) -> None:  # pyright: ignore[reportRedeclaration]
         event: AlertEvent = cast('AlertEvent', event)
-        if isinstance(event.alert_type, DonationTypes):
-            alert_type = int(event.alert_type.value)
-        else:
-            alert_type: int = int(cast('str', event.alert_type))
-        if alert_type == DonationAlertTypes.DONATION.value:
+
+        if event.alert_type == DonationAlertTypes.DONATION.value:
             await self._donation(event)
             return
 
-        if alert_type == DonationAlertTypes.CUSTOM_REWARD.value:
+        if event.alert_type == DonationAlertTypes.CUSTOM_REWARD.value:
             await self._custom_reward(event)
             return
 
-        if alert_type == DonationAlertTypes.FOLLOW.value:
+        if event.alert_type == DonationAlertTypes.FOLLOW.value:
             await self._follow(event)
             return
 

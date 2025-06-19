@@ -2,13 +2,16 @@ import json
 import logging
 from collections.abc import Callable, Coroutine, Mapping
 from typing import Any, cast
+import typing
 
 import socketio
 from marshmallow.exceptions import ValidationError
 
 from gunlinuxbot.models import Event
-from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
+
+if typing.TYPE_CHECKING:
+    from donats.models import AlertEvent
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +39,17 @@ class DonatApi:
                 {'token': self.token, 'type': 'alert_widget'},
             )
 
+        """
         @self.sio.event
         async def message(data: str) -> None:
             logger.debug('i received a message! len: %s', len(data))
+        """
 
+        """
         @self.sio.on('*')  # pyright: ignore[reportOptionalCall]
         async def catch_all(event: AlertEvent, data: str) -> None:
             logger.debug('catch_all %s %s', event, len(data))
+        """
 
         @self.sio.on('donation')  # pyright: ignore[reportOptionalCall]
         async def on_message(message_data: str) -> None:
@@ -50,10 +57,11 @@ class DonatApi:
             logger.debug('new event %s', data)
             try:
                 event: AlertEvent = cast('AlertEvent', AlertEventSchema().load(data))
-            except ValidationError:
-                logger.debug('ghost message, cause donation alerts hates me %s', data)
+            except ValidationError as e:
+                logger.critical('validation error: %s ', data, exc_info=e)
                 return None
             if self.handler is not None:
+                logger.critical('before handler %s', event)
                 return await self.handler(event)
             logger.critical('no handler wtf')
             return None

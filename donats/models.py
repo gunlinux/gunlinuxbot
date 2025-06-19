@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
-from enum import Enum
+import typing
 
 from gunlinuxbot.models import Event
 
 
+"""
 class DonationAlertTypes(Enum):
     DONATION = 1
     CUSTOM_REWARD = 19
@@ -14,18 +15,14 @@ class DonationAlertTypes(Enum):
 class DonationTypes(Enum):
     DONATION = '1'
     REWARD = '19'
-
-
-class BillingSystem(Enum):
-    FAKE = 'fake'
-    TWITCH = 'TWITCH'
+"""
 
 
 @dataclass
 class AlertEvent(Event):
     id: int
-    alert_type: DonationTypes
-    billing_system: BillingSystem
+    alert_type: int
+    billing_system: str
     username: str | None
     amount: float
     amount_formatted: str
@@ -36,13 +33,11 @@ class AlertEvent(Event):
     _is_test_alert: bool
     # Method to serialize the dataclass instance into JSON-compatible dict
 
-    def serialize(self) -> dict:
+    def serialize(self) -> dict[str, typing.Any]:
         return {
             'id': self.id,
-            'alert_type': self.alert_type.value if self.alert_type else None,
-            'billing_system': self.billing_system.value
-            if self.billing_system
-            else None,
+            'alert_type': self.alert_type,
+            'billing_system': self.billing_system,
             'username': self.username,
             'amount': self.amount,
             'amount_formatted': self.amount_formatted,

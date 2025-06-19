@@ -3,7 +3,6 @@ import os
 from collections.abc import Callable, Coroutine
 import typing
 import json
-from socketio import exceptions as socketio_exceptions
 
 from donats.donats import DonatApi
 from gunlinuxbot.models import Event
@@ -36,7 +35,7 @@ async def init_process(
         message_id = message_dict.get('id', None)
         logger.debug('Processing message ID: %s', message_id)
         if queue.last_id and queue.last_id == message_id:
-            logger.warning('Duplicate message detected: %s', message_id)
+            logger.critical('Duplicate message detected: %s', message_id)
             await asyncio.sleep(0.1)
             return
         queue.last_id = message_id
@@ -51,6 +50,7 @@ async def init_process(
         await events_queue.push(new_message)
         await work_queue.push(new_message)
         await beer_queue.push(new_message)
+        logger.critical('saving new_message to a works queues')
 
     return process_mssg
 
@@ -67,13 +67,12 @@ async def main() -> None:
             queue, typing.cast('RedisConnection', redis_connection)
         )
         bot = DonatApi(token=access_token, handler=handler)
-        try:
-            logger.info('Starting donats bot')
-            while True:
+        while True:
+            try:
+                logger.info('restart donats bot')
                 await bot.run()
-        except socketio_exceptions.ConnectionError:
-            logger.exception('Connection error occurred')
-            logger.warning('Connection error we are reconnecting')
+            except Exception as e:  # noqa: BLE001, PERF203
+                logger.warning('Connection error we are reconnecting', exc_info=e)
 
 
 if __name__ == '__main__':
