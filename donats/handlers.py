@@ -21,6 +21,7 @@ class DonationAlertTypes(Enum):
     DONATION = 1
     CUSTOM_REWARD = 19
     FOLLOW = 6
+    SUBSCRIBE = 7
 
 
 class DonatEventHandler(EventHandler):
@@ -53,6 +54,10 @@ class DonatEventHandler(EventHandler):
             await self._follow(event)
             return
 
+        if event.alert_type == DonationAlertTypes.SUBSCRIBE.value:
+            await self._subscribe(event)
+            return
+
         logger.warning('handle_event not implemented yet %s', event)
         return
 
@@ -67,6 +72,11 @@ class DonatEventHandler(EventHandler):
     async def _follow(self, event: AlertEvent) -> None:
         logger.info('donat.event _follow')
         mssg_text = f'@gunlinux @{event.username} started follow auf'
+        await self.chat(mssg_text)
+
+    async def _subscribe(self, event: AlertEvent) -> None:
+        logger.info('donat.event _subscribe (youtube?)')
+        mssg_text = f'@gunlinux @{event.username} _subscribed on youtube <3 auf'
         await self.chat(mssg_text)
 
     async def _custom_reward(self, event: AlertEvent) -> None:
