@@ -68,7 +68,7 @@ class CommandProcessor:
 
     async def execute(self, command: str) -> bool:
         """Execute an external Python script in a subprocess"""
-        print('kinda execute: %s', command)
+        logger.critical('kinda execute: %s', command)
 
         # Prepare the command to run the script
         cmd = ['uv', 'run', f'{self.scripts_path}{command}']
@@ -82,7 +82,7 @@ class CommandProcessor:
             _ = task.result()
 
         except Exception as e:  # noqa: BLE001
-            print(f'Error executing script: {e}')
+            logger.critical('Error executing script: %s', e)
             return False
         else:
             return True
@@ -108,8 +108,10 @@ class QueueConsumer(EventHandler):
     async def handle_event(self, event: Event) -> None:
         event = typing.cast('AlertEvent', event)
         if command := self.command_config.find(event):
-            print('we found command: %s', command)
+            logger.info('we found command: %s', command)
             _ = await self.processor.execute(command)
+            return
+        logger.critical('cant find a command %s', event)
 
     @typing.override
     async def on_message(self, message: QueueMessage) -> QueueMessage | None:
@@ -117,6 +119,7 @@ class QueueConsumer(EventHandler):
             'AlertEvent', AlertEventSchema().load(json.loads(message.data))
         )
         try:
+            logger.info('start to handle_event %s', alert)
             await self.handle_event(alert)
         except Exception as e:  # noqa: BLE001
             logger.critical('cant handle message %s %s', message, e)
@@ -128,16 +131,20 @@ class QueueConsumer(EventHandler):
 
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
-    async with RedisConnection(redis_url) as redis_connection:
-        queue: Queue = Queue(name='local_events', connection=redis_connection)
-        command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]
+    while True:
+        try:
+            async with RedisConnection(redis_url) as redis_connection:
+                queue: Queue = Queue(name='local_events', connection=redis_connection)
+                command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]
 
-        processor: CommandProcessor = CommandProcessor()
+                processor: CommandProcessor = CommandProcessor()
 
-        local_events_consumer: QueueConsumer = QueueConsumer(
-            command_config=command_config, processor=processor
-        )
-        await queue.consumer(local_events_consumer.on_message)
+                local_events_consumer: QueueConsumer = QueueConsumer(
+                    command_config=command_config, processor=processor
+                )
+                await queue.consumer(local_events_consumer.on_message)
+        except Exception as e:  # noqa: BLE001,PERF203
+            logger.critical('we have a situation here, %s', exc_info=e)
 
 
 if __name__ == '__main__':
