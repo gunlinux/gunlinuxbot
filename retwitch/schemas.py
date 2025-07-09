@@ -1,7 +1,10 @@
 from collections.abc import Mapping
 from marshmallow import Schema, fields, validate, INCLUDE, post_load, EXCLUDE
-from dataclasses import dataclass
+from marshmallow_enum import EnumField
+
+from dataclasses import dataclass, asdict
 from enum import StrEnum
+from gunlinuxbot.models import Event
 import typing
 
 
@@ -18,7 +21,7 @@ class EventType(StrEnum):
 
 
 @dataclass
-class Event:
+class RetwitchEvent(Event):
     event_type: EventType
     user_id: str
     user_login: str
@@ -30,42 +33,57 @@ class Event:
         return None
 
 
-class EventRaid(Event):
+class RetwitchEventSchema(Schema):
+    event_type = EnumField(EventType, by_value=True, required=True)
+    user_id = fields.Str(required=False, allow_none=True)
+    user_login = fields.Str(required=False, allow_none=True)
+    user_name = fields.Str(required=False, allow_none=True)
+    event = fields.Dict(keys=fields.Str(), values=fields.Raw(allow_none=True))
+
+    class Meta:
+        unknown = INCLUDE
+
+    @post_load
+    def make_obj(self, data: Mapping[str, typing.Any], **_):
+        return RetwitchEvent(**data)
+
+
+class EventRaid(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} just raid channel with {self.event["viewers"]}'
 
 
-class EventCustomReward(Event):
+class EventCustomReward(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} took reward {self.event}'
 
 
-class EventChannelFollow(Event):
+class EventChannelFollow(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} followed channel'
 
 
-class EventChannelMessage(Event):
+class EventChannelMessage(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} just typed {self.event.get("text")}'
 
 
-class EventChannelSubscribe(Event):
+class EventChannelSubscribe(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} just subscribed to channel ({self.event.get("tier")})'
 
 
-class EventChannelResubscribeMessage(Event):
+class EventChannelResubscribeMessage(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
@@ -75,7 +93,7 @@ class EventChannelResubscribeMessage(Event):
         )
 
 
-def create_event_from_subevent(data: Mapping[str, typing.Any]) -> Event | None:
+def create_event_from_subevent(data: Mapping[str, typing.Any]) -> RetwitchEvent | None:
     sub_type = data.get('metadata', {}).get('subscription_type', None)
     event_type = EventType(sub_type)
     event = data.get('payload', {}).get('event', {})
@@ -140,19 +158,6 @@ def create_event_from_subevent(data: Mapping[str, typing.Any]) -> Event | None:
                 },
             )
         case EventType.CHANNEL_RESUBSCRIBE:
-            """
-                "user_id": "1234",
-                "user_login": "cool_user",
-                "user_name": "Cool_User",
-                "tier": "1000",
-                "message": {
-                    "text": "Love the stream! FevziGG",
-                },
-                "cumulative_months": 15,
-                "streak_months": 1, // null if not shared
-                "duration_months": 6
-                }
-            """
             return EventChannelResubscribeMessage(
                 event_type=event_type,
                 user_id=event['user_id'],
@@ -237,3 +242,17 @@ class TokenResponseSchema(Schema):
     @post_load
     def create_model(self, data: dict[str, typing.Any], **_) -> TokenResponse:
         return TokenResponse(**data)
+
+
+def promote_event(event: RetwitchEvent) -> RetwitchEvent:
+    mapping: dict[EventType, type[RetwitchEvent]] = {
+        EventType.CHANNEL_FOLLOW: EventChannelFollow,
+        EventType.CHANNEL_RAID: EventRaid,
+        EventType.CHANNEL_RESUBSCRIBE: EventChannelResubscribeMessage,
+        EventType.CHANNEL_SUBSCRIBE: EventChannelSubscribe,
+        EventType.CUSTOM_REWARD: EventCustomReward,
+        EventType.CHANNEL_MESSAGE: EventChannelMessage,
+    }
+
+    cls = mapping.get(event.event_type, RetwitchEvent)
+    return cls(**asdict(event))
