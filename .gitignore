@@ -164,3 +164,4 @@ local_events/commands.py
 local_events/scripts/*_task.py
 .aider*
 *.db
+*.json
