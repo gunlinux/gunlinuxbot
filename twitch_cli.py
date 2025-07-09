@@ -10,14 +10,13 @@ logger = logger_setup('twitchbot')
 
 async def main():
     dotenv.load_dotenv()
-    client_id = os.getenv('CLIENT_ID', '')
-    client_secret = os.getenv('CLIENT_SECRET', '')
+    client_id = os.getenv('RECLIENT_ID', '')
+    client_secret = os.getenv('RECLIENT_SECRET', '')
     token_manager: TokenManager = TokenManager(
         client_id=client_id,
         client_secret=client_secret,
-        token_file='channels_tokens.json',  # noqa: S106
+        token_file='tokens.json',  # noqa: S106
     )
-    token_manager.load_real_token()
 
     if len(sys.argv) == 1:
         url = token_manager.generate_code_url()

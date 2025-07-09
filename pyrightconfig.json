@@ -1,8 +1,0 @@
-{
-  "reportAny": false,
-  "reportExplicitAny": false,
-  "reportMissingTypeStubs": false,
-  "reportUnannotatedClassAttribute": false,
-  "reportUnknownMemberType": false
-}
-

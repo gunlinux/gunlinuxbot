@@ -32,36 +32,42 @@ class Event:
 
 class EventRaid(Event):
     @property
+    @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} just raid channel with {self.event["viewers"]}'
 
 
 class EventCustomReward(Event):
     @property
+    @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} took reward {self.event}'
 
 
 class EventChannelFollow(Event):
     @property
+    @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} followed channel'
 
 
 class EventChannelMessage(Event):
     @property
+    @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} just typed {self.event.get("text")}'
 
 
 class EventChannelSubscribe(Event):
     @property
+    @typing.override
     def message(self) -> str | None:
         return f'{self.user_name} just subscribed to channel ({self.event.get("tier")})'
 
 
 class EventChannelResubscribeMessage(Event):
     @property
+    @typing.override
     def message(self) -> str | None:
         return (
             f'{self.user_name} just resubscribed to channel '

@@ -1,13 +1,11 @@
-from collections.abc import Mapping
-import os
+from collections.abc import Mapping, Callable, Awaitable
 import asyncio
 import typing
 import json
 from time import time
 
 import aiohttp
-from dotenv import load_dotenv
-from retwitch.schemas import EventSchema
+from retwitch.schemas import EventSchema, Event, create_event_from_subevent
 from retwitch.token import TokenManager
 from retwitch.reqs import HttpReqs
 from gunlinuxbot.utils import logger_setup
@@ -43,6 +41,7 @@ class BotClient:
         self.broadcaster_user_id: str = broadcaster_user_id
         self.lastseen: float | None = None
         self._socket = None
+        self.handler: Callable[[Event], Awaitable[None]] | None = None
 
     async def create_sub(self, session_id: str) -> None:
         await self.http_reqs.create_sub_chat_message(
@@ -76,7 +75,10 @@ class BotClient:
             case 'revocation':
                 await self._socket.close()
             case _:
-                return
+                new_event: Event | None = create_event_from_subevent(event)
+                if not new_event:
+                    return
+                await self.handler(new_event)
 
     async def _listen(self):
         logger.info('start listen')
@@ -89,7 +91,8 @@ class BotClient:
                 logger.warning('we are dead')
                 await self._socket.close()
 
-    async def run(self):
+    async def run(self, handler: Callable[[Event], Awaitable[None]]) -> None:
+        self.handler = handler
         await asyncio.gather(self.run_ws(), self._listen())
 
     async def run_ws(self):
@@ -146,42 +149,3 @@ class ChannelBotClient(BotClient):
         await self.http_reqs.create_sub_custom_reward_redemption_add(
             session_id=session_id, broadcaster_user_id=self.broadcaster_user_id
         )
-
-
-async def main():
-    load_dotenv()
-    client_id = os.getenv('CLIENT_ID', '')
-    client_secret = os.getenv('CLIENT_SECRET', '')
-    owner_id = os.getenv('OWNER_ID', '')
-    bot_id = os.getenv('BOT_ID', '')
-    token_manager = TokenManager(client_id=client_id, client_secret=client_secret)
-    token_manager.load_real_token()
-    await token_manager.refresh_token()
-    token_manager.save_real_token()
-
-    channel_token_manager: TokenManager = TokenManager(
-        client_id=client_id,
-        client_secret=client_secret,
-        token_file='channels_tokens.json',  # noqa: S106
-    )
-    channel_token_manager.load_real_token()
-    await channel_token_manager.refresh_token()
-    channel_token_manager.save_real_token()
-
-    bot = BotClient(
-        token_manager=token_manager,
-        client_id=client_id,
-        user_id=bot_id,
-        broadcaster_user_id=owner_id,
-    )
-    bot_channel = ChannelBotClient(
-        token_manager=channel_token_manager,
-        client_id=client_id,
-        user_id=bot_id,
-        broadcaster_user_id=owner_id,
-    )
-    await asyncio.gather(bot.run(), bot_channel.run())
-
-
-if __name__ == '__main__':
-    asyncio.run(main())

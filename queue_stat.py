@@ -9,7 +9,14 @@ from gunlinuxbot.utils import logger_setup
 
 logger = logger_setup(__name__)
 
-queues_names = ['da_events', 'twitch_mssgs', 'twitch_out', 'bs_donats', 'local_events']
+queues_names = [
+    'da_events',
+    'twitch_mssgs',
+    'twitch_out',
+    'bs_donats',
+    'local_events',
+    'retwitch_mssgs',
+]
 
 
 async def get_queues_stat() -> None:

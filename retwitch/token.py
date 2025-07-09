@@ -134,7 +134,7 @@ class TokenManager:
         path = Path(self.token_file)
         new_token: TokenResponse | None = None
         if path.exists():
-            with path.open(mode='w') as f:
+            with path.open(mode='r') as f:
                 logger.info('loading_token file from %s', self.token_file)
                 new_token = typing.cast(
                     'TokenResponse', TokenResponseSchema().load(json.load(f))

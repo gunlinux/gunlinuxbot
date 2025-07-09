@@ -56,3 +56,7 @@ check_untyped_defs = true
 ignore = ["tests"]
 reportOptionalCall = false
 reportUnusedCallResult = false
+# вернуть
+reportUnannotatedClassAttribute = false
+reportExplicitAny = false
+reportAny = false
