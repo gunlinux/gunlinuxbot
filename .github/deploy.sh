@@ -17,8 +17,10 @@ git reset --hard origin/$BRANCH
 sudo systemctl restart donats_getter
 sudo systemctl restart donats_worker
 sudo systemctl restart twitch_getter
+sudo systemctl restart retwitch_getter
 sudo systemctl restart twitch_sender
 sudo systemctl restart twitch_worker
+sudo systemctl restart retwitch_worker
 sudo systemctl restart beer_consumer
 
 echo "Deployment completed successfully."
