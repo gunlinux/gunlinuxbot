@@ -72,7 +72,7 @@ class TokenManager:
 
     async def get_access_token(self) -> str:
         if not self._token:
-            raise ValueError('Dame')  # noqa: EM101
+            raise ValueError('Dame')
         if (
             self._token.last_updated + self._token.expires_in - time.time()
         ) < REFRESH_TOKEN_DELTA:
@@ -97,7 +97,7 @@ class TokenManager:
 
     async def refresh_token(self) -> None:
         if not self._token:
-            raise ValueError('dame')  # noqa: EM101
+            raise ValueError('dame')
         logger.info('refreshing token %s', self._token)
         params = {
             'grant_type': 'refresh_token',
@@ -111,7 +111,7 @@ class TokenManager:
 
     async def revoke(self, client_id: str) -> None:
         if not self._token:
-            raise ValueError('Dame')  # noqa: EM101
+            raise ValueError('Dame')
 
         params = {
             'client_id': client_id,
@@ -125,18 +125,22 @@ class TokenManager:
 
     def save_real_token(self) -> None:
         if not self._token:
-            raise ValueError('Dame')  # noqa: EM101
+            raise ValueError('Dame')
         path = Path(self.token_file)
-        with path.open() as f:
+        with path.open(mode='w') as f:
             json.dump(asdict(self._token), f)
 
     def load_real_token(self) -> None:
         path = Path(self.token_file)
-        with path.open(mode='w') as f:
-            logger.info('loading_token file from %s', self.token_file)
-            self._token = typing.cast(
-                'TokenResponse', TokenResponseSchema().load(json.load(f))
-            )
+        new_token: TokenResponse | None = None
+        if path.exists():
+            with path.open(mode='w') as f:
+                logger.info('loading_token file from %s', self.token_file)
+                new_token = typing.cast(
+                    'TokenResponse', TokenResponseSchema().load(json.load(f))
+                )
+        if new_token:
+            self._token = new_token
 
     def generate_code_url(self) -> str:
         base_url: str = TWITCH_AUTH

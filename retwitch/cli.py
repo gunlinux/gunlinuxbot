@@ -1,15 +1,15 @@
 import asyncio
 import os
-import logging
 import sys
 from retwitch.token import TokenManager
 import dotenv
+from gunlinuxbot.utils import logger_setup
 
-logger = logging.getLogger('twitchbot')
+logger = logger_setup('twitchbot')
 
 
 async def main():
-    _ = dotenv.load_dotenv()
+    dotenv.load_dotenv()
     client_id = os.getenv('CLIENT_ID', '')
     client_secret = os.getenv('CLIENT_SECRET', '')
     token_manager: TokenManager = TokenManager(

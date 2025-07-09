@@ -1,9 +1,7 @@
 from collections.abc import Mapping
 import os
 import asyncio
-import logging
 import typing
-import sys
 import json
 from time import time
 
@@ -12,14 +10,13 @@ from dotenv import load_dotenv
 from retwitch.schemas import EventSchema
 from retwitch.token import TokenManager
 from retwitch.reqs import HttpReqs
+from gunlinuxbot.utils import logger_setup
 
+"""
+Рекомендация: разделить на минимум три уровня — WebSocket клиент, EventSub подписчик, обработчик событий.
+"""
 
-logger = logging.getLogger('twitchbot')
-logger.setLevel(logging.DEBUG)
-
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.DEBUG)
-logger.addHandler(console_handler)
+logger = logger_setup('twitchbot')
 
 
 WS_URL = 'wss://eventsub.wss.twitch.tv/ws?keep_alive_timeout=30'
@@ -62,7 +59,7 @@ class BotClient:
 
     async def process_event(self, event: Mapping[str, typing.Any]) -> None:
         if self._socket is None:
-            raise ValueError('Dame')  # noqa: EM101
+            raise ValueError('Dame')
         match event['metadata']['message_type']:
             case 'session_welcome':
                 logger.info('got welcome message')
@@ -74,10 +71,10 @@ class BotClient:
                 self.lastseen = time()
 
             case 'session_reconnect':
-                _ = await self._socket.close()
+                await self._socket.close()
 
             case 'revocation':
-                _ = await self._socket.close()
+                await self._socket.close()
             case _:
                 return
 
@@ -90,10 +87,10 @@ class BotClient:
 
             if time() - self.lastseen > self._keep_alive_timeout:
                 logger.warning('we are dead')
-                _ = await self._socket.close()
+                await self._socket.close()
 
     async def run(self):
-        _ = await asyncio.gather(self.run_ws(), self._listen())
+        await asyncio.gather(self.run_ws(), self._listen())
 
     async def run_ws(self):
         while True:
@@ -113,7 +110,7 @@ class BotClient:
                 )
                 await self.process_event(event)
                 if not self.session_id:
-                    raise ValueError('no_session_id')  # noqa: EM101
+                    raise ValueError('no_session_id')
                 subs = await self.http_reqs.get_subs()
                 for sub in subs:
                     logger.info('deleting sub %s', sub.get('id'))
@@ -131,7 +128,7 @@ class BotClient:
                             EventSchema().load(json.loads(mssg.data)),
                         )
                     except Exception as e:  # noqa: BLE001
-                        logger.warning('cant load event %s', event, exc_info=e)
+                        logger.warning('cant load event %s', mssg.data, exc_info=e)
                         continue
                     await self.process_event(event)
 
@@ -152,7 +149,7 @@ class ChannelBotClient(BotClient):
 
 
 async def main():
-    _ = load_dotenv()
+    load_dotenv()
     client_id = os.getenv('CLIENT_ID', '')
     client_secret = os.getenv('CLIENT_SECRET', '')
     owner_id = os.getenv('OWNER_ID', '')
@@ -183,7 +180,7 @@ async def main():
         user_id=bot_id,
         broadcaster_user_id=owner_id,
     )
-    _ = await asyncio.gather(bot.run(), bot_channel.run())
+    await asyncio.gather(bot.run(), bot_channel.run())
 
 
 if __name__ == '__main__':

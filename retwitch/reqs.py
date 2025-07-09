@@ -1,11 +1,11 @@
 import typing
 import aiohttp
-import logging
 from collections.abc import Mapping
 from http import HTTPStatus
 from retwitch.token import TokenManager
+from gunlinuxbot.utils import logger_setup
 
-logger = logging.getLogger('twitchbot')
+logger = logger_setup('twitchbot')
 
 
 EVENT_SUB = 'https://api.twitch.tv/helix/eventsub/subscriptions'
@@ -21,7 +21,7 @@ class HttpReqs:
     ) -> Mapping[str, str]:
         token = await self.token_manager.get_access_token()
         if not token:
-            raise ValueError('notoken_wtf')  # noqa: EM101
+            raise ValueError('notoken_wtf')
         return typing.cast(
             'Mapping[str, str]',
             {
@@ -40,7 +40,8 @@ class HttpReqs:
             async with session.delete(
                 EVENT_SUB, params=params, headers=await self.default_headers()
             ) as resp:
-                assert resp.status == HTTPStatus.NO_CONTENT
+                if not resp.status == HTTPStatus.NO_CONTENT:
+                    raise ValueError('wrong_status')
 
     async def get_subs(self):
         async with aiohttp.ClientSession() as session:
@@ -76,7 +77,8 @@ class HttpReqs:
     async def create_sub_channel_raid(self, session_id: str, broadcaster_user_id: str):
         _type = 'channel.raid'
         async with aiohttp.ClientSession() as session:
-            assert self.token_manager
+            if not self.token_manager:
+                raise ValueError('not_token_manager')
             data = {
                 'type': _type,
                 'version': '1',
@@ -98,7 +100,8 @@ class HttpReqs:
     ):
         _type = 'channel.subscribe'
         async with aiohttp.ClientSession() as session:
-            assert self.token_manager
+            if not self.token_manager:
+                raise ValueError('not_token_manager')
             data = {
                 'type': _type,
                 'version': '1',
@@ -120,7 +123,8 @@ class HttpReqs:
     ):
         _type = 'channel.channel_points_custom_reward_redemption.add'
         async with aiohttp.ClientSession() as session:
-            assert self.token_manager
+            if not self.token_manager:
+                raise ValueError('not_token_manager')
             data = {
                 'type': _type,
                 'version': '1',

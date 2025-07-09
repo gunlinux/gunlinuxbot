@@ -32,7 +32,7 @@ dev = [
 select = ["ALL"]
 
 # 2. Avoid enforcing line-length violations (`E501`)
-ignore = ["E501", "Q000", "D", "DTZ005", "SIM117", "ANN", "I001", "S101", "T201", "COM812", "Q003"]
+ignore = ["E501", "Q000", "D", "DTZ005", "SIM117", "ANN", "I001", "S101", "T201", "COM812", "Q003", "EM101"]
 
 # 3. Avoid trying to fix flake8-bugbear (`B`) violations.
 unfixable = ["B"]
@@ -55,3 +55,4 @@ check_untyped_defs = true
 [tool.pyright]
 ignore = ["tests"]
 reportOptionalCall = false
+reportUnusedCallResult = false
