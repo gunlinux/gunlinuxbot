@@ -15,7 +15,7 @@ import json
 from collections.abc import Callable, Awaitable
 
 from requeue.requeue import Queue
-from requeue.rredis import RedisConnection
+from requeue.rredis import RedisConnection, Connection
 from requeue.schemas import QueueMessageSchema
 
 if typing.TYPE_CHECKING:
@@ -26,9 +26,10 @@ logger = logger_setup('retwitch')
 
 
 async def init_process(
-    queue: Queue,
+    redis_connection: Connection,
 ) -> Callable[[Event], Awaitable[None]]:
-    process_queue: Queue = queue
+    process_queue: Queue = Queue(name='retwitch_mssgs', connection=redis_connection)
+    local_events: Queue = Queue(name='retwitch_events', connection=redis_connection)
 
     async def process_mssg(event: Event) -> None:
         logger.info('processsing event: %s', event)
@@ -42,6 +43,7 @@ async def init_process(
             ),
         )
         await process_queue.push(payload)
+        await local_events.push(payload)
 
     return process_mssg
 
@@ -69,9 +71,7 @@ async def main():
     channel_token_manager.save_real_token()
 
     async with RedisConnection(redis_url) as redis_connection:
-        queue: Queue = Queue(name='retwitch_mssgs', connection=redis_connection)
-
-        handler = await init_process(queue)
+        handler = await init_process(redis_connection=redis_connection)
 
         bot = BotClient(
             token_manager=token_manager,
