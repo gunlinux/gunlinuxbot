@@ -16,6 +16,7 @@ queues_names = [
     'bs_donats',
     'local_events',
     'retwitch_mssgs',
+    'retwitch_events',
 ]
 
 
