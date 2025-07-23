@@ -55,19 +55,15 @@ class TaskAction:
 
     def wait(self, new_task: Task) -> Task:
         print('start wait')
-        ending = new_task.created_at.replace(tzinfo=timezone.utc) + timedelta(
-            seconds=self.duration
-        )
+        ending = new_task.timestamp + self.duration
         retask: Task | None = None
-        while datetime.now(timezone.utc) < ending:
+        while time.time() < ending:
             print('wait in loop')
             time.sleep(new_task.duration)
             with Session(self.engine) as new_session:
                 self.repo = TaskRepository(new_session)
                 retask = typing.cast('Task', self.repo.get_by_id(new_task.id))
-                ending = retask.created_at.replace(tzinfo=timezone.utc) + timedelta(
-                    seconds=retask.duration
-                )
+                ending = retask.timestamp + retask.duration
         if retask:
             return retask
         return new_task

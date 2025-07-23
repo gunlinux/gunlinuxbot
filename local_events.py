@@ -69,6 +69,7 @@ class CommandProcessor:
     async def execute(self, command: str) -> bool:
         """Execute an external Python script in a subprocess"""
         logger.critical('kinda execute: %s', command)
+        logger.critical('%s %s', self.scripts_path, command)
 
         # Prepare the command to run the script
         cmd = ['uv', 'run', f'{self.scripts_path}{command}']
