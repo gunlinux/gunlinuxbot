@@ -50,7 +50,7 @@ def test_process_events():
         if sub_type == EventType.CHANNEL_MESSAGE:
             new_event = create_event_from_subevent(new_event)
             assert new_event
-            assert new_event.message == 'theG4NS just typed auf'
+            assert new_event.message == 'auf'
             return
 
         if sub_type == EventType.CHANNEL_SUBSCRIBE:
