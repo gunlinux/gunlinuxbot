@@ -53,4 +53,6 @@ class TwitchEventHandler(EventHandler):
                 break
 
         if command_to_run:
-            await command_to_run.run(event, post=self.chat)
+            mssg = await command_to_run.run(event)
+            if mssg:
+                await self.chat(mssg)

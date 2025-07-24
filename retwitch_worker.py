@@ -7,6 +7,10 @@ from requeue.requeue import Queue
 from requeue.rredis import RedisConnection
 from sender.sender import Sender
 from gunlinuxbot.utils import logger_setup
+from gunlinuxbot.handlers import Command
+from commander import get_commands_from_dir, reload_command
+from commander.commands import auf
+
 
 logger = logger_setup('donats_worker')
 logger.info('Donats worker service started')
@@ -26,6 +30,15 @@ async def main() -> None:
             sender=sender,
             admin='gunlinux',
         )
+        Command('ауф', retwitch_handler, real_runner=auf)
+        Command('gunlinAuf', retwitch_handler, real_runner=auf)
+        Command('awoo', retwitch_handler, real_runner=auf)
+        Command('auf', retwitch_handler, real_runner=auf)
+        command_dir = os.environ.get('COMMAND_DIR', './commands/')
+        get_commands_from_dir(command_dir, retwitch_handler)
+        reload_command_runner = reload_command(command_dir, retwitch_handler)
+        Command('$reload', retwitch_handler, real_runner=reload_command_runner)
+
         await queue.consumer(retwitch_handler.on_message)
 
 

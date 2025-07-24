@@ -33,23 +33,21 @@ class Command:
         self,
         name: str,
         event_handler: 'EventHandler',
-        data: dict[str, str] | None = None,
+        data: dict[str, typing.Any] | None = None,
         real_runner: Callable[..., Any] | None = None,
     ) -> None:
         self.name: str = name
         self.event_handler: EventHandler = event_handler
         self.event_handler.register(self.name, self)
         self.real_runner = real_runner
-        self.data = data
+        self.data: dict[str, typing.Any] = {} if data is None else data
 
-    async def run(
-        self, event: Event, post: Awaitable[Any] | Callable[..., Any] | None = None
-    ) -> None:
+    async def run(self, event: Event) -> str | None:
         logger.debug('Running command %s for event %s', self.name, event)
         if self.real_runner is None:
             logger.warning('Command %s not implemented yet', self.name)
-            return
-        await self.real_runner(event, post=post, data=self.data)
+            return None
+        return await self.real_runner(event, **self.data)
 
     @typing.override
     def __str__(self) -> str:

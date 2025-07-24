@@ -73,7 +73,7 @@ class EventChannelMessage(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
-        return f'{self.user_name} just typed {self.event.get("text")}'
+        return self.event.get('text', '')
 
 
 class EventChannelSubscribe(RetwitchEvent):
