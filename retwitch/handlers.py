@@ -6,6 +6,7 @@ from retwitch.schemas import (
     RetwitchEvent,
     EventType,
     RetwitchEventSchema,
+    EventChannelMessage,
     promote_event,
 )
 from requeue.models import QueueMessage
@@ -52,8 +53,8 @@ class RetwitchEventHandler(EventHandler):
         if new_event.event_type == EventType.CHANNEL_RAID:
             await self._channel_raid(new_event)
 
-        if new_event.event_type == EventType.CUSTOM_REWARD:
-            await self.run_command(new_event)
+        if new_event.event_type == EventType.CHANNEL_MESSAGE:
+            await self.run_command(typing.cast('EventChannelMessage', new_event))
 
     async def _follow(self, event: RetwitchEvent) -> None:
         logger.info('donat.event _follow')
@@ -81,5 +82,16 @@ class RetwitchEventHandler(EventHandler):
             await self.chat(event.message)
 
     @typing.override
-    async def run_command(self, event: Event) -> None:
-        pass
+    async def run_command(self, event: EventChannelMessage) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.debug('Running command for event %s', event)
+        for command_name, command in self.commands.items():
+            if (
+                event
+                and event.message
+                and event.message.startswith(command_name.lower())
+            ):
+                logger.debug('detected command: %s', command)
+                command_to_run = command
+                mssg = await command_to_run.run(event)
+                if mssg:
+                    await self.chat(mssg)
