@@ -119,11 +119,8 @@ class QueueConsumer(EventHandler):
         alert: AlertEvent = typing.cast(
             'AlertEvent', AlertEventSchema().load(json.loads(message.data))
         )
-        try:
-            logger.info('start to handle_event %s', alert)
-            await self.handle_event(alert)
-        except Exception as e:  # noqa: BLE001
-            logger.critical('cant handle message %s %s', message, e)
+        logger.info('start to handle_event %s', alert)
+        await self.handle_event(alert)
 
     @typing.override
     async def run_command(self, event: Event) -> None:
@@ -132,20 +129,16 @@ class QueueConsumer(EventHandler):
 
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
-    while True:
-        try:
-            async with RedisConnection(redis_url) as redis_connection:
-                queue: Queue = Queue(name='local_events', connection=redis_connection)
-                command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]
+    async with RedisConnection(redis_url) as redis_connection:
+        queue: Queue = Queue(name='local_events', connection=redis_connection)
+        command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]
 
-                processor: CommandProcessor = CommandProcessor()
+        processor: CommandProcessor = CommandProcessor()
 
-                local_events_consumer: QueueConsumer = QueueConsumer(
-                    command_config=command_config, processor=processor
-                )
-                await queue.consumer(local_events_consumer.on_message)
-        except Exception as e:  # noqa: BLE001,PERF203
-            logger.critical('we have a situation here, %s', exc_info=e)
+        local_events_consumer: QueueConsumer = QueueConsumer(
+            command_config=command_config, processor=processor
+        )
+        await queue.consumer(local_events_consumer.on_message)
 
 
 if __name__ == '__main__':
