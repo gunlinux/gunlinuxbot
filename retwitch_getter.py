@@ -29,7 +29,7 @@ async def init_process(
     redis_connection: Connection,
 ) -> Callable[[Event], Awaitable[None]]:
     process_queue: Queue = Queue(name='retwitch_mssgs', connection=redis_connection)
-    local_events: Queue = Queue(name='retwitch_events', connection=redis_connection)
+    local_events: Queue = Queue(name='local_events', connection=redis_connection)
 
     async def process_mssg(event: Event) -> None:
         logger.info('processsing event: %s', event)

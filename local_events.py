@@ -18,8 +18,8 @@ logger = logger_setup('local_events')
 
 
 class CommandConfig:
-    def __init__(self, commands: list[dict[str, typing.Any]]) -> None:
-        self.commands: list[dict[str, typing.Any]] = commands
+    def __init__(self, lcommands: list[dict[str, typing.Any]]) -> None:
+        self.commands: list[dict[str, typing.Any]] = lcommands
         self.currencices: dict[str, float] = {
             'USD': 80,
             'RUB': 1,
@@ -48,7 +48,14 @@ class CommandConfig:
                 and command['name'] == alert.message
             ):
                 return command['command']
-        print('command not found', alert)
+        print('command not found by name', alert)
+        if alert.currency != 'RUB':
+            return None
+        for command in self.commands:
+            # donation alerts donate :D
+            if command['type'] == 'bycash' and command['price'] == int(alert.amount):
+                logger.critical('found command by price %s', alert)
+                return command['command']
         return None
 
 
@@ -131,13 +138,14 @@ async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
     async with RedisConnection(redis_url) as redis_connection:
         queue: Queue = Queue(name='local_events', connection=redis_connection)
-        command_config: CommandConfig = CommandConfig(commands=pay_commands)  # pyright: ignore[reportUnknownArgumentType]
+        command_config: CommandConfig = CommandConfig(pay_commands)  # pyright: ignore[reportUnknownArgumentType]
 
         processor: CommandProcessor = CommandProcessor()
 
         local_events_consumer: QueueConsumer = QueueConsumer(
             command_config=command_config, processor=processor
         )
+        print('yam yam yam')
         await queue.consumer(local_events_consumer.on_message)
 
 
