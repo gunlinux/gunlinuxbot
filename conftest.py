@@ -1,4 +1,3 @@
-import asyncio
 import json
 from pathlib import Path
 import typing
@@ -10,7 +9,6 @@ import pytest
 from requeue.schemas import QueueMessageSchema
 from requeue.requeue import Queue
 from requeue.rredis import Connection
-from twitch.twitchbot import TwitchBot
 
 if typing.TYPE_CHECKING:
     from requeue.models import QueueMessage
@@ -64,17 +62,6 @@ class MockRedis(Connection):
 @pytest.fixture
 def mock_redis():
     return MockRedis()
-
-
-@pytest.fixture
-def mock_twitch_external():
-    async def mock_run(*args, **kwargs):
-        _, _ = args, kwargs
-        for _ in range(30):
-            await asyncio.sleep(0.01)
-
-    TwitchBot.start = mock_run
-    return TwitchBot
 
 
 def load_test_queue(name: str):

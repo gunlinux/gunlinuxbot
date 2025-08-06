@@ -31,6 +31,7 @@ scopes = [
     'user:read:chat',
     'moderator:read:followers',
     'channel:read:subscriptions',
+    'user:write:chat',
 ]
 
 

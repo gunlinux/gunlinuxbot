@@ -123,9 +123,13 @@ class QueueConsumer(EventHandler):
 
     @typing.override
     async def on_message(self, message: QueueMessage) -> QueueMessage | None:
-        alert: AlertEvent = typing.cast(
-            'AlertEvent', AlertEventSchema().load(json.loads(message.data))
-        )
+        try:
+            alert: AlertEvent = typing.cast(
+                'AlertEvent', AlertEventSchema().load(json.loads(message.data))
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.critical('cant handle event', exc_info=e)
+            return
         logger.info('start to handle_event %s', alert)
         await self.handle_event(alert)
 
