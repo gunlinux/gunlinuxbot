@@ -9,6 +9,10 @@ logger = logger_setup('twitchbot')
 
 
 EVENT_SUB = 'https://api.twitch.tv/helix/eventsub/subscriptions'
+MESSAGE_ENDPOINT = 'https://api.twitch.tv/helix/chat/messages'
+
+
+class TwitchAccessError(Exception): ...
 
 
 class HttpReqs:
@@ -162,3 +166,23 @@ class HttpReqs:
                 EVENT_SUB, headers=await self.default_headers(), json=data
             ) as resp:
                 logger.info('%s %s', _type, resp.status)
+
+    async def send_message(
+        self,
+        broadcaster_user_id: str,
+        bot_user_id: str,
+        message: str,
+    ):
+        async with aiohttp.ClientSession() as session:
+            data: dict[str, str] = {
+                'broadcaster_id': broadcaster_user_id,
+                'sender_id': bot_user_id,
+                'message': message,
+            }
+            print(data)
+            async with session.post(
+                MESSAGE_ENDPOINT, headers=await self.default_headers(), json=data
+            ) as resp:
+                if resp.status != HTTPStatus.OK:
+                    raise TwitchAccessError
+                logger.info('%s ', resp.status)

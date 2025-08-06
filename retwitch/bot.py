@@ -149,3 +149,15 @@ class ChannelBotClient(BotClient):
         await self.http_reqs.create_sub_custom_reward_redemption_add(
             session_id=session_id, broadcaster_user_id=self.broadcaster_user_id
         )
+
+
+class SenderBotClient(BotClient):
+    @typing.override
+    async def create_sub(self, session_id: str) -> None:
+        # we dont need subs here
+        pass
+
+    async def send_message(self, message: str):
+        await self.http_reqs.send_message(
+            self.broadcaster_user_id, self.user_id, message
+        )

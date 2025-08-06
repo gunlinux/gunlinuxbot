@@ -21,6 +21,8 @@ class AlertEventSchema(Schema):
 
     @pre_load
     def preload(self, data: dict[str, typing.Any], **_) -> dict[str, typing.Any]:
+        if 'alert_type' not in data:
+            return data
         data['alert_type'] = (
             int(data['alert_type'])
             if isinstance(data['alert_type'], str)
