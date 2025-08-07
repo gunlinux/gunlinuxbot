@@ -56,6 +56,9 @@ class RetwitchEventHandler(EventHandler):
         if new_event.event_type == EventType.CHANNEL_MESSAGE:
             await self.run_command(typing.cast('EventChannelMessage', new_event))
 
+        if new_event.event_type == EventType.CUSTOM_REWARD:
+            await self._custom_reward(new_event)
+
     async def _follow(self, event: RetwitchEvent) -> None:
         logger.info('donat.event _follow')
         if event.message:
