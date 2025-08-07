@@ -11,10 +11,34 @@ from gunlinuxbot.utils import logger_setup
 from donats.models import AlertEvent
 from donats.schemas import AlertEventSchema
 from local_events.commands import pay_commands  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+from retwitch.schemas import (
+    RetwitchEventSchema,
+    RetwitchEvent,
+    promote_event,
+    EventType,
+)
 
 from requeue.models import QueueMessage
 
 logger = logger_setup('local_events')
+
+
+def alertevent_from_twitch(event: RetwitchEvent) -> AlertEvent | None:
+    message = event.event_type.name
+    if event.event_type == EventType.CUSTOM_REWARD:
+        message = event.event.get('title', message)
+    return AlertEvent(
+        id=0,
+        alert_type=0,
+        billing_system='RETWITCH',
+        username=event.user_name,
+        amount=0,
+        amount_formatted='',
+        currency='POINTS',
+        date_created='',
+        message=message,
+        _is_test_alert=False,
+    )
 
 
 class CommandConfig:
@@ -24,6 +48,7 @@ class CommandConfig:
             'USD': 80,
             'RUB': 1,
             'EUR': 90,
+            'POINTS': 1,
         }
 
     def _get_final_amount(self, amount: float, currency: str) -> float:
@@ -42,8 +67,10 @@ class CommandConfig:
                 and alert.billing_system != 'TWITCH'
             ):
                 return command['command']
+            print(alert.message)
+            print(command['name'])
             if (
-                alert.billing_system == 'TWITCH'
+                alert.billing_system == 'RETWITCH'
                 and command['type'] == 'twitch'
                 and command['name'] == alert.message
             ):
@@ -123,19 +150,56 @@ class QueueConsumer(EventHandler):
 
     @typing.override
     async def on_message(self, message: QueueMessage) -> QueueMessage | None:
+        if message.event == 'da_message':
+            return await self._on_message_da(message)
+        if message.event == 'retwitch_message':
+            return await self._on_message_twitch(message)
+        return None
+
+    async def _on_message_da(self, message: QueueMessage) -> QueueMessage | None:
         try:
             alert: AlertEvent = typing.cast(
                 'AlertEvent', AlertEventSchema().load(json.loads(message.data))
             )
+            if alert.billing_system == 'TWITCH':
+                # ignore twich messages
+                return
         except Exception as e:  # noqa: BLE001
-            logger.critical('cant handle event', exc_info=e)
+            logger.critical('cant handle event %s', e)
             return
         logger.info('start to handle_event %s', alert)
         await self.handle_event(alert)
 
+    async def _on_message_twitch(self, message: QueueMessage) -> QueueMessage | None:
+        try:
+            twitch_event: RetwitchEvent = typing.cast(
+                'RetwitchEvent', RetwitchEventSchema().load(json.loads(message.data))
+            )
+        except Exception as e:  #  noqa: BLE001
+            logger.critical('cant load schema of message %s', e)
+            return
+        if twitch_event.event_type == 'channel.chat.message':
+            logger.critical('ignore chat')
+            return
+        twitch_event = promote_event(twitch_event)
+        alert = alertevent_from_twitch(twitch_event)
+        if alert:
+            await self.handle_event(alert)
+        return
+
     @typing.override
     async def run_command(self, event: Event) -> None:
         pass
+
+
+"""
+event: retwitch_message
+QueueMessage(event='retwitch_message', data='{"event_type": "channel.channel_points_custom_reward_redemption.add", "user_id": "29122457", "user_login": "gunlinux", "user_name": "gunlinux", "event": {"status": "unfulfilled", "user_input": "", "title": "flashback", "cost": 1000}}', source='', retry=0, status=<QueueMessageStatus.PROCESSING: 2>)
+
+
+event: da_message
+    AlertEvent, alert_type, billing_system, username, amount, currency, message
+"""
 
 
 async def main() -> None:
