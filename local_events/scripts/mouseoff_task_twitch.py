@@ -14,7 +14,7 @@ if __name__ == '__main__':
     def finish_func():
         print('endinshg staff')
         _ = os.system(f'hyprctl keyword device[{mouse}]:enabled true')  # noqa: S605
-        #_ = os.system('/home/loki/scripts/mssg.sh "Мышка снова жива"')  # noqa: S605
+        _ = os.system('/home/loki/scripts/mssg.sh "Мышка снова жива"')  # noqa: S605
 
     action = TaskAction(
         engine=engine,

@@ -8,10 +8,10 @@ from sender.sender import Sender
 
 async def main() -> None:
     mssg = sys.argv[1]
-    redis_url: str = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
+    redis_url: str = os.environ.get('REDIS_URL', '')
     async with RedisConnection(redis_url) as redis_connection:
-        sender = Sender(queue_name=mssg, connection=redis_connection)
-        await sender.send_message("hello darkness my old friend")
+        sender = Sender(queue_name='twitch_out', connection=redis_connection)
+        await sender.send_message(mssg)
 
 
 if __name__ == '__main__':
