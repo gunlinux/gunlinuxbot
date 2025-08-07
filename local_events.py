@@ -192,16 +192,6 @@ class QueueConsumer(EventHandler):
         pass
 
 
-"""
-event: retwitch_message
-QueueMessage(event='retwitch_message', data='{"event_type": "channel.channel_points_custom_reward_redemption.add", "user_id": "29122457", "user_login": "gunlinux", "user_name": "gunlinux", "event": {"status": "unfulfilled", "user_input": "", "title": "flashback", "cost": 1000}}', source='', retry=0, status=<QueueMessageStatus.PROCESSING: 2>)
-
-
-event: da_message
-    AlertEvent, alert_type, billing_system, username, amount, currency, message
-"""
-
-
 async def main() -> None:
     redis_url: str = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
     async with RedisConnection(redis_url) as redis_connection:
