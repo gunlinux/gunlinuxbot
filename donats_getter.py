@@ -26,19 +26,24 @@ async def init_process(
     work_queue: Queue = queue
     events_queue = Queue(name='local_events', connection=redis_connection)
     beer_queue = Queue(name='bs_donats', connection=redis_connection)
+    processed = set()
 
     async def process_mssg(message: Event) -> None:
+        nonlocal processed
         logger.debug('Received message for processing')
         logger.debug('Message content: %s', message)
         message = typing.cast('AlertEvent', message)
         message_dict = message.serialize()
+        if message_dict.get('billing_system') == 'TWITCH':
+            logger.debug('ignoring message from twitch: %s', message_dict)
+            return
         message_id = message_dict.get('id', None)
         logger.debug('Processing message ID: %s', message_id)
-        if queue.last_id and queue.last_id == message_id:
+        if message_id in processed:
             logger.critical('Duplicate message detected: %s', message_id)
-            await asyncio.sleep(0.1)
             return
-        queue.last_id = message_id
+        processed.add(message_id)
+
         payload = {
             'event': 'da_message',
             'data': json.dumps(message_dict),
@@ -57,7 +62,7 @@ async def init_process(
 
 async def main() -> None:
     access_token = os.environ.get('DA_ACCESS_TOKEN', 'set_Dame_token')
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost/1')
+    redis_url = os.environ.get('REDIS_URL', 'redis://gunlinux.ru/1')
     logger.info('Initializing donats getter service')
     logger.info('Redis URL: %s', redis_url)
     async with RedisConnection(redis_url) as redis_connection:
@@ -69,8 +74,9 @@ async def main() -> None:
         bot = DonatApi(token=access_token, handler=handler)
         while True:
             try:
-                logger.info('restart donats bot')
+                logger.info('start donats bot')
                 await bot.run()
+                logger.warning('bot.run() finished without an exception. Restarting...')
             except Exception as e:  # noqa: BLE001, PERF203
                 logger.warning('Connection error we are reconnecting', exc_info=e)
 
