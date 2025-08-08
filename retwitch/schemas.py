@@ -59,7 +59,8 @@ class EventCustomReward(RetwitchEvent):
     @property
     @typing.override
     def message(self) -> str | None:
-        return f'{self.user_name} took reward {self.event}'
+        title = self.event.get('title', '')
+        return f'{self.user_name} took reward {title}'
 
 
 class EventChannelFollow(RetwitchEvent):

@@ -54,6 +54,7 @@ async def main():
             user_id=bot_id,
             broadcaster_user_id=owner_id,
         )
+        await bot.send_message('> sendbot rejoin chat')
 
         process = await init_process(bot)
         await queue.consumer(process)
