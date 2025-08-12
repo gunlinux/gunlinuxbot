@@ -1,5 +1,6 @@
 import asyncio
 import os
+from collections import deque
 from collections.abc import Callable, Coroutine
 import typing
 import json
@@ -26,7 +27,7 @@ async def init_process(
     work_queue: Queue = queue
     events_queue = Queue(name='local_events', connection=redis_connection)
     beer_queue = Queue(name='bs_donats', connection=redis_connection)
-    processed = set()
+    processed = deque(maxlen=100)
 
     async def process_mssg(message: Event) -> None:
         nonlocal processed
@@ -42,7 +43,7 @@ async def init_process(
         if message_id in processed:
             logger.critical('Duplicate message detected: %s', message_id)
             return
-        processed.add(message_id)
+        processed.append(message_id)
 
         payload = {
             'event': 'da_message',
