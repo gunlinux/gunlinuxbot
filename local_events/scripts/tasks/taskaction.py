@@ -4,8 +4,10 @@ import typing
 
 from sqlmodel import Session
 from sqlalchemy.engine import Engine
-from tasks.models import Task
+from tasks.models import Task, TaskStatus
 from tasks.repository import TaskRepository
+
+SLEEP_TIMEOUT = 1
 
 # 🧪 Step 4: Demonstrate usage of the repository
 
@@ -58,17 +60,22 @@ class TaskAction:
         retask: Task | None = None
         while time.time() < ending:
             print('wait in loop')
-            time.sleep(new_task.duration)
+            time.sleep(SLEEP_TIMEOUT)
             with Session(self.engine) as new_session:
                 self.repo = TaskRepository(new_session)
                 retask = typing.cast('Task', self.repo.get_by_id(new_task.id))
                 ending = retask.timestamp + retask.duration
+                if retask.completed != TaskStatus.NEW.value:
+                    print('break')
+                    break
         if retask:
             return retask
         return new_task
 
     def finish(self, new_task: Task) -> None:
         print('start finish')
+        if new_task.completed == TaskStatus.CANCELED:
+            return
         if self._finish:
             self._finish()
         new_task.completed = True

@@ -31,6 +31,11 @@ class TaskRepository:
         statement = select(Task).where(not_(column('completed')), Task.title == title)
         return self.session.exec(statement).first()
 
+    def get_all_active_by_name(self, title: str):
+        """Retrieve all tasks from the database."""
+        statement = select(Task).where(not_(column('completed')), Task.title == title)
+        return self.session.exec(statement).all()
+
     def get_by_id(self, task_id: int):
         """Retrieve a task by its ID."""
         return self.session.get(Task, task_id)
